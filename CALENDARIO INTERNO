@@ -4,79 +4,560 @@
  * (Versión con campos de gestión interna y presentación adaptada)
  */
 
-// --- Constantes de Configuración Hoja Principal "Calendario Cultural CECAN" ---
-var CALENDAR_SHEET_NAME = "Calendario Cultural CECAN";
-// Índices de columna (basados en 1) - ¡CRUCIAL AJUSTAR SI EL ORDEN CAMBIA!
-var COL_INDEX_CAL = {
-  FOLIO: 1,
-  ID_EVENTO: 2, // Puede ser el mismo que Folio o un ID para comunicación externa
-  MES: 3,
-  DIA: 4,
-  FECHA_COMPLETA: 5,
-  EVENTO: 6, // Nombre del Evento/Actividad
-  TIPO_ACTIVIDAD: 7,
-  ALCANCE: 8,
-  RELEVANCIA_CULTURAL: 9, // Para eventos públicos
-  DESCRIPCION_INTERNA: 10,
-  SUGERENCIAS_CECAN: 11, // Para comunicación externa
-  PROYECTOS_CECAN: 12,
-  AREA_RESPONSABLE: 13,
-  LUGAR_ESPECIFICO: 14,
-  HORA_INICIO: 15,
-  HORA_FIN: 16,
-  PRIORIDAD: 17,
-  ALINEACION_PSECTORIAL: 18,
-  META_PSECTORIAL_NO: 19,
-  ESTADO_CONTENIDO_EXT: 20, // Para comunicación externa
-  ESTADO_INTERNO: 21,
-  ESTADO_VERIFICACION_EXT: 22 // Para fechas externas
+const CONFIG = {
+  calendarSheet: {
+    name: "Calendario Cultural CECAN",
+    columns: {
+      folio: { label: "Folio", index: 0 },
+      idEvento: { label: "ID Evento", index: 1 },
+      mes: { label: "Mes", index: 2 },
+      dia: { label: "Día", index: 3 },
+      fechaCompleta: { label: "Fecha Completa", index: 4 },
+      evento: { label: "Evento / Actividad", index: 5 },
+      tipoActividad: { label: "Tipo Actividad", index: 6 },
+      alcance: { label: "Alcance", index: 7 },
+      relevanciaCultural: { label: "Relevancia Cultural (Público)", index: 8 },
+      descripcionInterna: { label: "Descripción (Interna)", index: 9 },
+      sugerenciasCecan: { label: "Sugerencias CECAN (Público)", index: 10 },
+      proyectosCecan: { label: "Proyectos CECAN Vinculados", index: 11 },
+      areaResponsable: { label: "Área Responsable CECAN", index: 12 },
+      lugarEspecifico: { label: "Lugar Específico", index: 13 },
+      horaInicio: { label: "Hora Inicio", index: 14 },
+      horaFin: { label: "Hora Fin", index: 15 },
+      prioridad: { label: "Prioridad", index: 16 },
+      alineacionPsectorial: { label: "Alineación PSECTORIAL", index: 17 },
+      metaPsectorialNo: { label: "Meta PSECTORIAL No.", index: 18 },
+      estadoContenidoExt: { label: "Estado Contenido (Externo)", index: 19 },
+      estadoInterno: { label: "Estado Interno", index: 20 },
+      estadoVerificacionExt: { label: "Estado Verificación (Externo)", index: 21 }
+    },
+    defaultSort: [
+      { columnKey: 'fechaCompleta', ascending: true },
+      { columnKey: 'horaInicio', ascending: true }
+    ],
+    status: { 
+      PENDIENTE: "Pendiente",
+      EN_PROCESO: "En Proceso",
+      LISTO: "Listo",
+      PUBLICADO: "Publicado"
+    },
+    statusColors: {
+      PENDIENTE: "#FFF2CC" 
+    },
+    dropdownLists: {
+      tiposActividad: ["Evento Público", "Conmemoración Externa", "Reunión Interna", "Capacitación", "Hito de Proyecto", "Entrega Administrativa", "Logística Evento", "Otro"],
+      prioridad: ["Alta", "Media", "Baja"],
+      estadoInterno: ["Planeado", "Confirmado", "En Logística", "En Ejecución", "Completado", "Pospuesto", "Cancelado"],
+      alcance: ["Mundial", "Nacional", "Estatal (Nayarit)", "Municipal", "Comunitario", "Interno CECAN", "Interinstitucional"]
+    },
+    get headerNames() { 
+      return Object.values(this.columns)
+                   .sort((a, b) => a.index - b.index)
+                   .map(col => col.label);
+    },
+    numberFormats: {
+      fechaCompleta: "yyyy-mm-dd",
+      horaInicio: "hh:mm AM/PM",
+      horaFin: "hh:mm AM/PM"
+    }
+  },
+  editorialSheet: {
+    name: "Cronograma Editorial",
+    styling: {
+      headerColor: "#e2d8f3",
+      bandingColor1: "#ffffff",
+      bandingColor2: "#f3f6f4",
+      borderColor: "#d9d9d9"
+    },
+    columns: {
+      idEvento: { label: "ID Evento (Opcional)", index: 0 },
+      fechaEvento: { label: "Fecha Evento", index: 1 },
+      eventoConmemoracion: { label: "Evento/Conmemoración", index: 2 },
+      fechaPublicacion: { label: "Fecha Publicación", index: 3 },
+      horaPublicacion: { label: "Hora Publicación", index: 4 },
+      plataforma: { label: "Plataforma", index: 5 },
+      textoContenidoRef: { label: "Texto/Contenido (Ref)", index: 6 },
+      visualRef: { label: "Visual (Ref)", index: 7 },
+      estadoPublicacion: { label: "Estado Publicación", index: 8 },
+      responsableOpc: { label: "Responsable (Opc.)", index: 9 },
+      notasEspecificas: { label: "Notas Específicas", index: 10 }
+    },
+    get headerNames() { 
+        return Object.values(this.columns)
+                     .sort((a, b) => a.index - b.index)
+                     .map(col => col.label);
+    },
+    dropdownLists: {
+      plataforma: ["Facebook", "Instagram Feed", "Instagram Story", "Instagram Reel", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Web CECAN", "Telegram", "WhatsApp Status", "Otro"],
+      estadoPublicacion: ["Pendiente", "En Proceso", "Listo para Programar", "Programado", "Publicado", "Cancelado"]
+    },
+    conditionalFormattingStatusColors: {
+      "Pendiente": "#fffacd",
+      "En Proceso": "#fffacd", 
+      "Listo para Programar": "#fffacd", 
+      "Programado": "#cfe2f3", 
+      "Publicado": "#d9ead3", 
+      "Cancelado": "#cccccc"
+    },
+    columnWidths: [100, 120, 250, 120, 100, 150, 250, 200, 150, 120, 300],
+    numberFormatColumns: {
+        fechaEvento: "yyyy-mm-dd",
+        fechaPublicacion: "yyyy-mm-dd"
+    }
+  },
+  internalPresentation: {
+    titleFontFamily: "Calibri",
+    titleFontSize: 28,
+    titleFontColor: "#222222",
+    titleShapeFillColor: "#e0e0e0",
+    titleShapePadding: 10,
+    bodyFontFamily: "Calibri",
+    bodyFontSize: 12,
+    bodyFontColor: "#333333",
+    backgroundColor: "#f5f5f5",
+    accentColors: {
+      prioridadAlta: "#E53935", 
+      prioridadMedia: "#FFB300", 
+      prioridadBaja: "#43A047" 
+    },
+    requiredCalendarColumns: [ 
+      "folio", "mes", "fechaCompleta", "evento", "tipoActividad",
+      "descripcionInterna", "areaResponsable", "lugarEspecifico",
+      "horaInicio", "horaFin", "prioridad", "alineacionPsectorial",
+      "metaPsectorialNo", "estadoInterno"
+    ],
+    endSlideText: "CECAN - Planificación Interna"
+  }
 };
 
-var CONTENT_STATUS_CAL = { // Para Estado Contenido Externo
-  PENDIENTE: "Pendiente",
-  EN_PROCESO: "En Proceso",
-  LISTO: "Listo",
-  PUBLICADO: "Publicado"
-};
-var STATUS_COLORS_CAL = { // Para Estado Contenido Externo
-  PENDIENTE: "#FFF2CC" // Amarillo Pastel
-};
+// --- Helper Functions for Sheet Setup ---
 
-// Nuevas Listas para Desplegables de Calendario Interno
-const TIPOS_ACTIVIDAD_LIST = ["Evento Público", "Conmemoración Externa", "Reunión Interna", "Capacitación", "Hito de Proyecto", "Entrega Administrativa", "Logística Evento", "Otro"];
-const PRIORIDAD_LIST = ["Alta", "Media", "Baja"];
-const ESTADO_INTERNO_LIST = ["Planeado", "Confirmado", "En Logística", "En Ejecución", "Completado", "Pospuesto", "Cancelado"];
-const ALCANCE_LIST = ["Mundial", "Nacional", "Estatal (Nayarit)", "Municipal", "Comunitario", "Interno CECAN", "Interinstitucional"];
+/**
+ * Ensures a sheet with the given name exists, creating it if necessary, and sets its headers.
+ * @param {string} sheetName The name of the sheet to ensure exists.
+ * @param {string[]} headersArray An array of strings for the header row.
+ * @param {boolean} headerBold If true, the header row will be bold.
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} targetSpreadsheet The spreadsheet to work with.
+ * @returns {{sheet: GoogleAppsScript.Spreadsheet.Sheet, isNew: boolean}} An object containing the sheet and a boolean indicating if it was newly created.
+ */
+function ensureSheetExists(sheetName, headersArray, headerBold, targetSpreadsheet) {
+  let sheet = targetSpreadsheet.getSheetByName(sheetName);
+  let isNewSheet = false;
+  if (!sheet) {
+    sheet = targetSpreadsheet.insertSheet(sheetName);
+    Logger.log(`Hoja '${sheetName}' creada.`);
+    isNewSheet = true;
+  } else {
+    Logger.log(`Hoja '${sheetName}' ya existe.`);
+  }
+
+  if (sheet.getLastColumn() < headersArray.length) {
+    sheet.insertColumnsAfter(sheet.getLastColumn(), headersArray.length - sheet.getLastColumn());
+  }
+  const headerRange = sheet.getRange(1, 1, 1, headersArray.length);
+  headerRange.setValues([headersArray]);
+  if (headerBold) {
+    headerRange.setFontWeight("bold");
+  }
+  Logger.log(`Encabezados verificados/escritos en ${sheetName}`);
+  return {sheet: sheet, isNew: isNewSheet};
+}
+
+/**
+ * Populates a sheet with initial data if the sheet is empty (has less than 2 rows).
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to populate.
+ * @param {Array<Array<string|Date|number>>} dataArray A 2D array of data to insert.
+ * @param {string[]} headerArray An array of header strings (used to determine number of columns).
+ * @returns {void}
+ */
+function populateInitialData(sheet, dataArray, headerArray) {
+  if (sheet.getLastRow() < 2 && dataArray.length > 0) {
+    sheet.getRange(2, 1, dataArray.length, headerArray.length).setValues(dataArray);
+    Logger.log(`Datos iniciales poblados en ${sheet.getName()}`);
+  } else if (dataArray.length > 0) {
+    Logger.log(`La hoja ${sheet.getName()} ya contiene datos. No se añadieron los datos iniciales.`);
+  }
+}
+
+/**
+ * Applies conditional formatting rules to a sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to apply rules to.
+ * @param {object[]} rulesConfigs An array of rule configuration objects.
+ * @param {object} columnObjects Configuration object for sheet columns, mapping keys to {index, label}.
+ * @param {string[]} [clearOnlyTheseColumnKeys] Optional. An array of column keys for which to clear existing rules before applying new ones. If null/empty, existing rules are preserved unless directly replaced by a new rule with identical range and type.
+ * @returns {void}
+ */
+function applyConditionalFormattingRules(sheet, rulesConfigs, columnObjects, clearOnlyTheseColumnKeys) {
+  let existingRules = sheet.getConditionalFormatRules();
+  let newRules = [];
+
+  if (clearOnlyTheseColumnKeys && clearOnlyTheseColumnKeys.length > 0) {
+    const targetColumnIndices = clearOnlyTheseColumnKeys.map(key => columnObjects[key].index + 1);
+    existingRules.forEach(rule => {
+      let ruleAppliesToTarget = false;
+      const ranges = rule.getRanges();
+      if (ranges) {
+        for (let j = 0; j < ranges.length; j++) {
+          if (ranges[j].getSheet().getName() === sheet.getName() && targetColumnIndices.includes(ranges[j].getColumn())) {
+            ruleAppliesToTarget = true;
+            break;
+          }
+        }
+      }
+      if (!ruleAppliesToTarget) {
+        newRules.push(rule);
+      }
+    });
+  } else {
+     newRules = existingRules.slice(); // Create a copy to modify
+  }
+  
+  rulesConfigs.forEach(function(ruleConfig) {
+    const columnIndex = columnObjects[ruleConfig.columnKey].index + 1;
+    const range = sheet.getRange(2, columnIndex, sheet.getMaxRows() - 1, 1);
+    const ruleBuilder = SpreadsheetApp.newConditionalFormatRule().setRanges([range]);
+
+    if (ruleConfig.criteriaType === SpreadsheetApp.BooleanCriteria.TEXT_EQ) {
+        ruleBuilder.whenTextEqualTo(ruleConfig.criteriaValue);
+    }
+    // Add other criteria types as needed in future
+
+    if (ruleConfig.backgroundColor) {
+        ruleBuilder.setBackground(ruleConfig.backgroundColor);
+    }
+    if (ruleConfig.fontColor) {
+        ruleBuilder.setFontColor(ruleConfig.fontColor);
+    }
+    newRules.push(ruleBuilder.build());
+  });
+
+  sheet.setConditionalFormatRules(newRules);
+  Logger.log(`Formato condicional actualizado en ${sheet.getName()}`);
+}
+
+/**
+ * Applies data validation rules to specified columns in a sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to apply data validations to.
+ * @param {object[]} validationsConfigs An array of validation configuration objects.
+ * @param {object} columnObjects Configuration object for sheet columns, mapping keys to {index, label}.
+ * @param {object} allDropdownLists An object where keys are list identifiers and values are arrays of dropdown options or objects (like CONFIG.calendarSheet.status).
+ * @returns {void}
+ */
+function applyDataValidations(sheet, validationsConfigs, columnObjects, allDropdownLists) {
+  validationsConfigs.forEach(function(valConfig) {
+    const columnIndex = columnObjects[valConfig.columnKey].index + 1;
+    const range = sheet.getRange(2, columnIndex, sheet.getMaxRows() - 1, 1);
+    const listSource = allDropdownLists[valConfig.requireValueInList.listKey];
+    const validationList = Array.isArray(listSource) ? listSource : Object.values(listSource);
+    
+    const rule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(validationList)
+      .setAllowInvalid(valConfig.requireValueInList.allowInvalid)
+      .setHelpText(valConfig.requireValueInList.helpText)
+      .build();
+    range.setDataValidation(rule);
+  });
+  Logger.log(`Validación de datos configurada en ${sheet.getName()}`);
+}
+
+/**
+ * Applies number formats to specified columns in a sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to apply number formats to.
+ * @param {object} formatsConfigs An object where keys are column keys (from columnObjects) and values are number format strings.
+ * @param {object} columnObjects Configuration object for sheet columns, mapping keys to {index, label}.
+ * @returns {void}
+ */
+function applyNumberFormats(sheet, formatsConfigs, columnObjects) {
+  for (const columnKey in formatsConfigs) {
+    if (formatsConfigs.hasOwnProperty(columnKey) && columnObjects[columnKey]) {
+      const columnIndex = columnObjects[columnKey].index + 1;
+      const range = sheet.getRange(2, columnIndex, sheet.getMaxRows() - 1, 1);
+      range.setNumberFormat(formatsConfigs[columnKey]);
+    }
+  }
+  Logger.log(`Formatos de número aplicados en ${sheet.getName()}`);
+}
+
+/**
+ * Auto-resizes all columns in a sheet based on their content.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to resize columns on.
+ * @param {string[]} headerArray An array of header strings (used to determine the number of columns to resize).
+ * @returns {void}
+ */
+function autoResizeAllColumns(sheet, headerArray) {
+  try {
+    headerArray.forEach(function(_, i) {
+      sheet.autoResizeColumn(i + 1);
+    });
+    Logger.log(`Columnas auto-ajustadas en ${sheet.getName()}`);
+  } catch (e) {
+    Logger.log(`Error en autoResizeColumn (puede ignorarse) en ${sheet.getName()}: ${e.toString()}`);
+  }
+}
+
+/**
+ * Applies specific styling to the Editorial Sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The Editorial sheet.
+ * @param {object} stylingConfig Configuration object for styling (headerColor, bandingColors, borderColor).
+ * @param {number[]} colWidthsArray Array of column widths.
+ * @param {number} numHeaders The number of header columns.
+ * @returns {void}
+ */
+function applyEditorialSheetStyling(sheet, stylingConfig, colWidthsArray, numHeaders) {
+  const headerRange = sheet.getRange(1, 1, 1, numHeaders);
+  headerRange
+    .setBackground(stylingConfig.headerColor)
+    .setVerticalAlignment("middle")
+    .setHorizontalAlignment("center")
+    .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
+    .setBorder(null, null, true, null, null, null, stylingConfig.borderColor, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  
+  sheet.setFrozenRows(1);
+
+  const dataRange = sheet.getRange(2, 1, sheet.getMaxRows() - 1, numHeaders);
+  const existingBandings = sheet.getBandings();
+  for (let i = 0; i < existingBandings.length; i++) {
+    existingBandings[i].remove();
+  }
+  const banding = dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+  banding.setHeaderRowColor(null) 
+         .setFirstRowColor(stylingConfig.bandingColor1)
+         .setSecondRowColor(stylingConfig.bandingColor2);
+  
+  dataRange.setBorder(true, true, true, true, true, true, stylingConfig.borderColor, SpreadsheetApp.BorderStyle.SOLID_THIN);
+
+  colWidthsArray.forEach((width, i) => {
+    sheet.setColumnWidth(i + 1, width);
+  });
+  Logger.log(`Estilos aplicados a la hoja: ${sheet.getName()}`);
+}
+
+// --- Helper Functions for Presentation Generation ---
+
+/**
+ * Retrieves and prepares calendar data for a specific month.
+ * @param {string} calendarSheetName The name of the calendar sheet.
+ * @param {string} requestedMonth The month for which to filter data (e.g., "Junio").
+ * @param {object} sheetColumnsConfig The column configuration object for the calendar sheet.
+ * @param {string[]} requiredColumnKeys An array of column keys that are essential for the presentation.
+ * @returns {object[]|null} An array of event objects for the month, or null if an error occurs.
+ */
+function getCalendarDataForMonth(calendarSheetName, requestedMonth, sheetColumnsConfig, requiredColumnKeys) {
+  const ui = SpreadsheetApp.getUi();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const calendarSheet = spreadsheet.getSheetByName(calendarSheetName);
+
+  if (!calendarSheet) {
+    ui.alert(`Error: No se encontró la hoja de calendario "${calendarSheetName}".`);
+    Logger.log(`Error: Hoja de calendario "${calendarSheetName}" no encontrada.`);
+    return null;
+  }
+
+  const allSheetData = calendarSheet.getDataRange().getValues();
+  if (allSheetData.length === 0) {
+    ui.alert(`Error: La hoja de calendario "${calendarSheetName}" está vacía.`);
+    Logger.log(`Error: Hoja de calendario "${calendarSheetName}" vacía.`);
+    return null;
+  }
+  const sheetHeaders = allSheetData.shift();
+  
+  const idxMap = {};
+  for (const key of requiredColumnKeys) {
+    if (!sheetColumnsConfig[key] || !sheetColumnsConfig[key].label) {
+        const errorMsg = `Error de Configuración: Falta la configuración para la columna requerida con clave "${key}".`;
+        ui.alert(errorMsg);
+        Logger.log(errorMsg);
+        return null;
+    }
+    const label = sheetColumnsConfig[key].label;
+    const index = sheetHeaders.indexOf(label);
+    if (index === -1) {
+      const errorMsg = `Error de Columnas: La columna requerida "${label}" (clave: ${key}) no se encontró en la hoja "${calendarSheetName}". Revisa los encabezados.`;
+      ui.alert(errorMsg);
+      Logger.log(errorMsg);
+      return null;
+    }
+    idxMap[key] = index;
+  }
+
+  for (const key in sheetColumnsConfig) {
+    if (!idxMap.hasOwnProperty(key)) { 
+        const label = sheetColumnsConfig[key].label;
+        idxMap[key] = sheetHeaders.indexOf(label); 
+    }
+  }
+  
+  if (idxMap.mes === -1 || typeof idxMap.mes === 'undefined') {
+      const errorMsg = `Error de Columnas: La columna "Mes" (clave: mes) no se encontró o no está configurada correctamente en la hoja "${calendarSheetName}".`;
+      ui.alert(errorMsg);
+      Logger.log(errorMsg);
+      return null;
+  }
+
+  const eventosDelMesData = allSheetData.filter(row => row[idxMap.mes] && row[idxMap.mes].toString().toLowerCase() === requestedMonth.toLowerCase());
+
+  const eventosDelMesObjects = eventosDelMesData.map(row => {
+    const eventObj = {};
+    for (const key in sheetColumnsConfig) { // Iterate over all configured columns
+      if (idxMap.hasOwnProperty(key) && idxMap[key] !== -1) { // Check if key exists in idxMap and was found
+        eventObj[key] = row[idxMap[key]];
+      }
+    }
+    return eventObj;
+  });
+  Logger.log(`Se encontraron ${eventosDelMesObjects.length} eventos para el mes de ${requestedMonth}.`);
+  return eventosDelMesObjects;
+}
+
+/**
+ * Adds and formats the title slide of a presentation.
+ * @param {GoogleAppsScript.Slides.Presentation} presentation The presentation object.
+ * @param {string} presentationTitle The main title for the presentation.
+ * @param {string} subtitleText The subtitle text.
+ * @param {object} styleConfig Configuration object for presentation styling.
+ * @returns {void}
+ */
+function addTitleSlideToPresentation(presentation, presentationTitle, subtitleText, styleConfig) {
+  const slide = presentation.getSlides()[0]; 
+  slide.getBackground().setSolidFill(styleConfig.backgroundColor);
+
+  slide.getPlaceholders().forEach(ph => {
+    if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.TITLE) {
+      ph.asShape().getText().setText(presentationTitle)
+        .getTextStyle().setFontFamily(styleConfig.titleFontFamily)
+        .setFontSize(styleConfig.titleFontSize)
+        .setForegroundColor(styleConfig.titleFontColor);
+    } else if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.SUBTITLE) {
+      ph.asShape().getText().setText(subtitleText)
+        .getTextStyle().setFontFamily(styleConfig.bodyFontFamily) 
+        .setFontSize(styleConfig.bodyFontSize)    
+        .setForegroundColor(styleConfig.bodyFontColor);
+    } else {
+      try { 
+          ph.asShape().getText().setText(""); 
+      } catch(e) {
+          Logger.log(`Advertencia: No se pudo limpiar el placeholder: ${e.toString()}`);
+      }
+    }
+  });
+  Logger.log("Diapositiva de título agregada y formateada.");
+}
+
+/**
+ * Adds a new slide to the presentation for a single event.
+ * @param {GoogleAppsScript.Slides.Presentation} presentation The presentation object.
+ * @param {object} eventObj An object containing the event's data.
+ * @param {object} styleConfig Configuration object for presentation styling.
+ * @param {GoogleAppsScript.Slides.PredefinedLayout} layout The layout to use for the new slide.
+ * @returns {void}
+ */
+function addEventSlideToPresentation(presentation, eventObj, styleConfig, layout) {
+  const slide = presentation.appendSlide(layout);
+  slide.getBackground().setSolidFill(styleConfig.backgroundColor);
+
+  const titlePlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.TITLE)[0];
+  if (titlePlaceholder) {
+    const tituloDiapositiva = `${eventObj.folio || "S/F"} - ${eventObj.evento || "Actividad sin Título"}`;
+    titlePlaceholder.asShape().getText().setText(tituloDiapositiva);
+    const titleTextRange = titlePlaceholder.asShape().getText();
+    titleTextRange.getTextStyle().setFontFamily(styleConfig.titleFontFamily)
+      .setFontSize(styleConfig.titleFontSize)
+      .setForegroundColor(styleConfig.titleFontColor);
+    
+    const titleShape = titlePlaceholder.asShape();
+    const width = titleShape.getWidth(); const height = titleShape.getHeight();
+    const left = titleShape.getLeft(); const top = titleShape.getTop();
+    const titleBgShape = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 
+                                          left - styleConfig.titleShapePadding, 
+                                          top - styleConfig.titleShapePadding, 
+                                          width + (2 * styleConfig.titleShapePadding), 
+                                          height + (2 * styleConfig.titleShapePadding));
+    titleBgShape.getFill().setSolidFill(styleConfig.titleShapeFillColor);
+    titleBgShape.sendToBack();
+    titleShape.bringToFront();
+  }
+
+  const bodyPlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.BODY)[0];
+  if (bodyPlaceholder) {
+    const bodyText = bodyPlaceholder.asShape().getText();
+    bodyText.clear(); 
+
+    let fechaFormateada = eventObj.fechaCompleta;
+    if (eventObj.fechaCompleta instanceof Date) {
+        fechaFormateada = Utilities.formatDate(eventObj.fechaCompleta, Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
+    } else if (typeof eventObj.fechaCompleta === 'string' && eventObj.fechaCompleta.match(/^\d{4}-\d{2}-\d{2}/)) { 
+        try {
+            const dateOnly = eventObj.fechaCompleta.substring(0,10); 
+            const dateObjInstance = new Date(dateOnly + "T00:00:00"); 
+            if(!isNaN(dateObjInstance)) {
+               fechaFormateada = Utilities.formatDate(dateObjInstance, Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
+            }
+        } catch(e) { Logger.log(`Error al formatear fecha '${eventObj.fechaCompleta}': ${e.toString()}`); }
+    }
+    
+    const horaInicioStr = eventObj.horaInicio instanceof Date ? Utilities.formatDate(eventObj.horaInicio, Session.getScriptTimeZone(), "HH:mm") : (eventObj.horaInicio || "");
+    const horaFinStr = eventObj.horaFin instanceof Date ? Utilities.formatDate(eventObj.horaFin, Session.getScriptTimeZone(), "HH:mm") : (eventObj.horaFin || "");
+    const horario = (horaInicioStr || horaFinStr) ? `${horaInicioStr || "--:--"} - ${horaFinStr || "--:--"}` : "No especificado";
+
+    const baseTextStyle = { fontFamily: styleConfig.bodyFontFamily, fontSize: styleConfig.bodyFontSize, color: styleConfig.bodyFontColor };
+
+    bodyText.appendParagraph(`Fecha: ${fechaFormateada || "No especificada"}  |  Horario: ${horario}`)
+            .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color).setBold(true);
+    
+    bodyText.appendParagraph(`\nTipo: ${eventObj.tipoActividad || "N/A"} | Lugar: ${eventObj.lugarEspecifico || "No especificado"}`)
+            .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color);
+    
+    bodyText.appendParagraph(`\nÁrea Responsable: ${eventObj.areaResponsable || "No especificada"}`)
+            .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color);
+    
+    const prioridadText = eventObj.prioridad || "No especificada";
+    let prioridadColor = baseTextStyle.color;
+    if (prioridadText.toLowerCase() === 'alta') prioridadColor = styleConfig.accentColors.prioridadAlta;
+    else if (prioridadText.toLowerCase() === 'media') prioridadColor = styleConfig.accentColors.prioridadMedia;
+    else if (prioridadText.toLowerCase() === 'baja') prioridadColor = styleConfig.accentColors.prioridadBaja;
+
+    const prioridadRun = bodyText.appendParagraph(`\nPrioridad: `).getRange().getTextStyle();
+    prioridadRun.setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color);
+    bodyText.appendParagraph(prioridadText).getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(prioridadColor).setBold(true);
+
+    bodyText.appendParagraph(`\nDescripción/Objetivos: ${eventObj.descripcionInterna || "No especificada"}`)
+            .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color);
+
+    if(eventObj.alineacionPsectorial || eventObj.metaPsectorialNo){
+        bodyText.appendParagraph(`\nAlineación PSECTORIAL: ${eventObj.alineacionPsectorial || "N/A"} (Meta: ${eventObj.metaPsectorialNo || "N/A"})`)
+                .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize - 1).setForegroundColor(baseTextStyle.color);
+    }
+    bodyText.appendParagraph(`\nEstado Interno: ${eventObj.estadoInterno || "No especificado"}`)
+            .getRange().getTextStyle().setFontFamily(baseTextStyle.fontFamily).setFontSize(baseTextStyle.fontSize).setForegroundColor(baseTextStyle.color).setItalic(true);
+  }
+  // Logger.log(`Diapositiva de evento agregada para: ${eventObj.folio || "S/F"}`); // Removed to reduce log noise
+}
+
+/**
+ * Adds a final "thank you" or branding slide to the presentation.
+ * @param {GoogleAppsScript.Slides.Presentation} presentation The presentation object.
+ * @param {string} text The text to display on the end slide.
+ * @param {object} styleConfig Configuration object for presentation styling.
+ * @param {GoogleAppsScript.Slides.PredefinedLayout} layout The layout to use for the slide.
+ * @returns {void}
+ */
+function addEndSlideToPresentation(presentation, text, styleConfig, layout) {
+  const slide = presentation.appendSlide(layout);
+  slide.getBackground().setSolidFill(styleConfig.backgroundColor);
+  slide.insertTextBox(text, 50, 220, 400, 100) 
+    .getText().getTextStyle().setFontFamily(styleConfig.titleFontFamily)
+    .setFontSize(20) 
+    .setForegroundColor(styleConfig.titleFontColor);
+  Logger.log("Diapositiva final agregada.");
+}
 
 
-// --- Constantes de Configuración Hoja "Cronograma Editorial" ---
-const CRONOGRAMA_SHEET_NAME = "Cronograma Editorial";
-const CRONOGRAMA_HEADER_COLOR = "#e2d8f3";
-const CRONOGRAMA_BANDING_COLOR_1 = "#ffffff";
-const CRONOGRAMA_BANDING_COLOR_2 = "#f3f6f4";
-const CRONOGRAMA_BORDER_COLOR = "#d9d9d9";
-const CRONOGRAMA_STATUS_PENDING_COLOR = "#fffacd";
-const CRONOGRAMA_STATUS_PROGRAMADO_COLOR = "#cfe2f3";
-const CRONOGRAMA_STATUS_PUBLICADO_COLOR = "#d9ead3";
-const CRONOGRAMA_PLATFORM_LIST = ["Facebook", "Instagram Feed", "Instagram Story", "Instagram Reel", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Web CECAN", "Telegram", "WhatsApp Status", "Otro"];
-const CRONOGRAMA_STATUS_LIST = ["Pendiente", "En Proceso", "Listo para Programar", "Programado", "Publicado", "Cancelado"];
+// --- Main Functions ---
 
-// --- Constantes para la Presentación de Google Slides (Interna) ---
-const SLIDE_INT_TITLE_FONT_FAMILY = "Calibri";
-const SLIDE_INT_TITLE_FONT_SIZE = 28;
-const SLIDE_INT_TITLE_FONT_COLOR = "#222222";
-const SLIDE_INT_TITLE_SHAPE_FILL_COLOR = "#e0e0e0";
-const SLIDE_INT_TITLE_SHAPE_PADDING = 10;
-const SLIDE_INT_BODY_FONT_FAMILY = "Calibri";
-const SLIDE_INT_BODY_FONT_SIZE = 12;
-const SLIDE_INT_BODY_FONT_COLOR = "#333333";
-const SLIDE_INT_BACKGROUND_COLOR = "#f5f5f5";
-const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_ALTA = "#E53935"; // Rojo
-const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_MEDIA = "#FFB300"; // Naranja/Ámbar
-const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_BAJA = "#43A047"; // Verde
-
-
-// --- Función onOpen Unificada ---
+/**
+ * Adds a custom menu to the spreadsheet UI when the spreadsheet is opened.
+ * @returns {void}
+ */
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Herramientas CECAN')
@@ -89,309 +570,226 @@ function onOpen() {
     .addToUi();
 }
 
-// --- Funciones para Hoja Principal "Calendario Cultural CECAN" ---
+/**
+ * Sets up the main cultural calendar sheet with headers, initial data, formatting, and validations.
+ * @returns {void}
+ */
 function setupCulturalCalendar() {
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = spreadsheet.getSheetByName(CALENDAR_SHEET_NAME);
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetConfig = CONFIG.calendarSheet;
 
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(CALENDAR_SHEET_NAME);
-    Logger.log("Hoja '" + CALENDAR_SHEET_NAME + "' creada.");
-  } else {
-    Logger.log("Hoja '" + CALENDAR_SHEET_NAME + "' ya existe.");
-  }
+  const result = ensureSheetExists(sheetConfig.name, sheetConfig.headerNames, true, spreadsheet);
+  const sheet = result.sheet;
 
-  var headers = [
-    "Folio", "ID Evento", "Mes", "Día", "Fecha Completa", "Evento / Actividad", "Tipo Actividad",
-    "Alcance", "Relevancia Cultural (Público)", "Descripción (Interna)", "Sugerencias CECAN (Público)",
-    "Proyectos CECAN Vinculados", "Área Responsable CECAN", "Lugar Específico", "Hora Inicio", "Hora Fin",
-    "Prioridad", "Alineación PSECTORIAL", "Meta PSECTORIAL No.", "Estado Contenido (Externo)",
-    "Estado Interno", "Estado Verificación (Externo)"
-  ];
-  
-  if (sheet.getLastColumn() < headers.length) {
-      sheet.insertColumnsAfter(sheet.getLastColumn(), headers.length - sheet.getLastColumn());
-  }
-  var headerRange = sheet.getRange(1, 1, 1, headers.length);
-  headerRange.setValues([headers]).setFontWeight("bold");
-  Logger.log("Encabezados verificados/escritos en " + CALENDAR_SHEET_NAME);
-
-  // Datos de ejemplo: Junio-Julio, luego Q3 (Ago-Oct), Q4 (Nov-Dic)
-  var calendarData = [
-    // Junio 2025
-    ["CECAN-2025-06-001", "EXT-JUN-001", "Junio", 12, "2025-06-12", "Aniversario Luctuoso de Eduardo Capelo", "Conmemoración Externa", "Estatal (Nayarit)", "Artista gráfico y creador de calendarios.", "Recordar su legado.", "Publicar sobre su trabajo.", "", "Difusión Cultural", "Redes Sociales", "", "", "Media", "Eje Patrimonio", "2.1", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
+  const calendarData = [
+    ["CECAN-2025-06-001", "EXT-JUN-001", "Junio", 12, "2025-06-12", "Aniversario Luctuoso de Eduardo Capelo", "Conmemoración Externa", "Estatal (Nayarit)", "Artista gráfico y creador de calendarios.", "Recordar su legado.", "Publicar sobre su trabajo.", "", "Difusión Cultural", "Redes Sociales", "", "", "Media", "Eje Patrimonio", "2.1", sheetConfig.status.PENDIENTE, "Planeado", "Verificado"],
     ["CECAN-2025-06-002", "INT-JUN-001", "Junio", 15, "2025-06-15", "Reunión de Planeación Festival Amado Nervo", "Reunión Interna", "Interno CECAN", "", "Definir sedes y artistas principales.", "", "Festival Amado Nervo", "Dirección Festivales", "Sala de Juntas CECAN", "10:00", "12:00", "Alta", "Eje Festivales", "3.1", "", "Confirmado", "N/A"],
-    ["CECAN-2025-06-003", "EXT-JUN-002", "Junio", 21, "2025-06-21", "Día Mundial de la Música", "Evento Público", "Mundial", "Celebración de la música.", "Organizar pequeño concierto.", "Destacar artistas locales.", "Música Nayarit", "Fomento Musical", "Plaza Principal Tepic", "18:00", "20:00", "Media", "Eje Fomento Artístico", "1.1", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
-    // Julio 2025
-    ["CECAN-2025-07-001", "EXT-JUL-001", "Julio", 6, "2025-07-06", "Aniversario Nacimiento Frida Kahlo", "Conmemoración Externa", "Nacional", "Figura icónica del arte mexicano.", "Posts en redes.", "Destacar su influencia.", "", "Comunicación", "Redes Sociales", "", "", "Media", "Eje Artes Visuales", "2.2", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
-    ["CECAN-2025-07-002", "INT-JUL-001", "Julio", 10, "2025-07-10", "Capacitación Uso Nueva Plataforma Web", "Capacitación", "Interno CECAN", "", "Personal de áreas sustantivas aprende a usar CMS.", "", "Modernización Digital", "TICs", "Aula Capacitación CECAN", "09:00", "13:00", "Alta", "Eje Fortalecimiento Inst.", "4.1", "", "Confirmado", "N/A"],
-    // Q3 Ejemplo (Agosto)
-    ["CECAN-2025-08-001", "EXT-AGO-001", "Agosto", 15, "2025-08-15", "Día Nacional del Cine Mexicano", "Evento Público", "Nacional", "Fomento a la cinematografía.", "Ciclo de cine nayarita.", "Promocionar ciclo.", "AIEC", "Cinematografía", "Cineteca Tepic", "19:00", "21:00", "Media", "Eje Audiovisual", "2.3", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
-    // Q4 Ejemplo (Noviembre)
-    ["CECAN-2025-11-001", "EXT-NOV-001", "Noviembre", 1, "2025-11-01", "Día de Muertos - Exposición Ofrendas", "Evento Público", "Estatal (Nayarit)", "Tradición mexicana.", "Montaje y difusión de exposición.", "Invitar al público.", "Patrimonio CECAN", "Museografía", "Patio Central CECAN", "10:00", "20:00", "Alta", "Eje Patrimonio", "2.1", CONTENT_STATUS_CAL.PENDIENTE, "Confirmado", "Verificado"],
   ];
+  populateInitialData(sheet, calendarData, sheetConfig.headerNames);
 
-  if (sheet.getLastRow() < 2 && calendarData.length > 0) {
-      sheet.getRange(2, 1, calendarData.length, headers.length).setValues(calendarData);
-      Logger.log("Datos iniciales (Jun-Jul, Q3, Q4) poblados en " + CALENDAR_SHEET_NAME);
-  } else if (calendarData.length > 0) {
-      Logger.log("La hoja " + CALENDAR_SHEET_NAME + " ya contiene datos. No se añadieron los datos iniciales.");
-  }
-
-  // Formato Condicional para 'Estado Contenido (Externo)'
-  var rules = sheet.getConditionalFormatRules(); var newRules = [];
-  for (var i = 0; i < rules.length; i++) {
-    var rule = rules[i]; var ranges = rule.getRanges(); var applies = false;
-    if (ranges && ranges.length > 0) applies = ranges[0].getSheet().getName() === CALENDAR_SHEET_NAME;
-    var criteria = rule.getBooleanCondition();
-    if (!applies || !criteria || criteria.getCriteriaType() !== SpreadsheetApp.BooleanCriteria.TEXT_EQ || criteria.getCriteriaValues()[0] !== CONTENT_STATUS_CAL.PENDIENTE) {
-      newRules.push(rule);
+  const conditionalFormatRules = [
+    { 
+      columnKey: 'estadoContenidoExt', 
+      criteriaType: SpreadsheetApp.BooleanCriteria.TEXT_EQ, 
+      criteriaValue: sheetConfig.status.PENDIENTE, 
+      backgroundColor: sheetConfig.statusColors.PENDIENTE 
     }
-  }
-  newRules.push(SpreadsheetApp.newConditionalFormatRule().setRanges([sheet.getRange(2, COL_INDEX_CAL.ESTADO_CONTENIDO_EXT, sheet.getMaxRows() -1 , 1)]).whenTextEqualTo(CONTENT_STATUS_CAL.PENDIENTE).setBackground(STATUS_COLORS_CAL.PENDIENTE).build());
-  sheet.setConditionalFormatRules(newRules);
-  Logger.log("Formato condicional actualizado en " + CALENDAR_SHEET_NAME);
+  ];
+  applyConditionalFormattingRules(sheet, conditionalFormatRules, sheetConfig.columns, null);
 
-  // Validación de Datos
-  sheet.getRange(2, COL_INDEX_CAL.ESTADO_CONTENIDO_EXT, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(Object.values(CONTENT_STATUS_CAL)).setAllowInvalid(false).setHelpText("Estado del contenido para difusión externa.").build());
-  sheet.getRange(2, COL_INDEX_CAL.TIPO_ACTIVIDAD, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(TIPOS_ACTIVIDAD_LIST).setAllowInvalid(false).setHelpText("Seleccione el tipo de actividad.").build());
-  sheet.getRange(2, COL_INDEX_CAL.PRIORIDAD, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PRIORIDAD_LIST).setAllowInvalid(false).setHelpText("Defina la prioridad.").build());
-  sheet.getRange(2, COL_INDEX_CAL.ESTADO_INTERNO, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ESTADO_INTERNO_LIST).setAllowInvalid(false).setHelpText("Estado de gestión interna de la actividad.").build());
-  sheet.getRange(2, COL_INDEX_CAL.ALCANCE, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ALCANCE_LIST).setAllowInvalid(false).setHelpText("Defina el alcance de la actividad.").build());
-  Logger.log("Validación de datos configurada en " + CALENDAR_SHEET_NAME);
 
-  sheet.getRange(2, COL_INDEX_CAL.FECHA_COMPLETA, sheet.getMaxRows() - 1, 1).setNumberFormat("yyyy-mm-dd");
-  sheet.getRange(2, COL_INDEX_CAL.HORA_INICIO, sheet.getMaxRows() - 1, 1).setNumberFormat("hh:mm AM/PM");
-  sheet.getRange(2, COL_INDEX_CAL.HORA_FIN, sheet.getMaxRows() - 1, 1).setNumberFormat("hh:mm AM/PM");
+  const validationConfigs = [
+    { columnKey: 'estadoContenidoExt', requireValueInList: { listKey: 'status', allowInvalid: false, helpText: "Estado del contenido para difusión externa." } },
+    { columnKey: 'tipoActividad', requireValueInList: { listKey: 'tiposActividad', allowInvalid: false, helpText: "Seleccione el tipo de actividad." } },
+    { columnKey: 'prioridad', requireValueInList: { listKey: 'prioridad', allowInvalid: false, helpText: "Defina la prioridad." } },
+    { columnKey: 'estadoInterno', requireValueInList: { listKey: 'estadoInterno', allowInvalid: false, helpText: "Estado de gestión interna de la actividad." } },
+    { columnKey: 'alcance', requireValueInList: { listKey: 'alcance', allowInvalid: false, helpText: "Defina el alcance de la actividad." } }
+  ];
+  const allDropdownListsForValidation = Object.assign({}, sheetConfig.dropdownLists, { status: sheetConfig.status });
+  applyDataValidations(sheet, validationConfigs, sheetConfig.columns, allDropdownListsForValidation);
+  
+  applyNumberFormats(sheet, sheetConfig.numberFormats, sheetConfig.columns);
 
-  sortCulturalCalendar();
-  try { 
-    headers.forEach((header, i) => { // Autoajustar cada columna individualmente
-        sheet.autoResizeColumn(i + 1);
-    });
-  } catch(e) { Logger.log("Error en autoResizeColumn (puede ignorarse): " + e); }
-  Logger.log("Configuración inicial completa para " + CALENDAR_SHEET_NAME);
+  sortCulturalCalendar(); 
+  autoResizeAllColumns(sheet, sheetConfig.headerNames);
+
+  Logger.log(`Configuración inicial completa para ${sheetConfig.name}`);
 }
 
+/**
+ * Handles onEdit events for the spreadsheet. Specifically, if the "Fecha Completa" or "Hora Inicio"
+ * columns in the main calendar sheet are edited, it updates the "Estado Contenido (Externo)"
+ * to "Pendiente" if it's empty and then re-sorts the calendar.
+ * @param {GoogleAppsScript.Events.SheetsOnEdit} e The event object passed by the onEdit trigger.
+ * @returns {void}
+ */
 function onEdit(e) {
   try {
-    var range = e.range; var sheet = range.getSheet();
-    if (sheet.getName() !== CALENDAR_SHEET_NAME || range.getRow() <= 1) return;
-    
-    var editedColumn = range.getColumn();
-    // Si se edita Fecha Completa u Hora Inicio, reordenar.
-    if (editedColumn === COL_INDEX_CAL.FECHA_COMPLETA || editedColumn === COL_INDEX_CAL.HORA_INICIO) {
-        if (range.getValue() !== "") { 
-            // Si se edita Fecha y Estado Contenido Ext está vacío, poner Pendiente
-            if (editedColumn === COL_INDEX_CAL.FECHA_COMPLETA) {
-                var statusCellExt = sheet.getRange(range.getRow(), COL_INDEX_CAL.ESTADO_CONTENIDO_EXT);
-                if (statusCellExt.getValue() === "") statusCellExt.setValue(CONTENT_STATUS_CAL.PENDIENTE);
-            }
-            Utilities.sleep(500); 
-            sortCulturalCalendar(); 
-        }
+    const range = e.range;
+    const sheet = range.getSheet();
+    const calConfig = CONFIG.calendarSheet;
+
+    if (sheet.getName() !== calConfig.name || range.getRow() <= 1) {
+      return;
     }
-  } catch (error) { Logger.log("Error en onEdit (" + CALENDAR_SHEET_NAME + "): " + error); }
+
+    const editedColumnZeroBased = range.getColumn() - 1; 
+
+    if (editedColumnZeroBased === calConfig.columns.fechaCompleta.index ||
+        editedColumnZeroBased === calConfig.columns.horaInicio.index) {
+      
+      if (range.getValue().toString().trim() !== "") { 
+        if (editedColumnZeroBased === calConfig.columns.fechaCompleta.index) {
+          const statusCellExt = sheet.getRange(range.getRow(), calConfig.columns.estadoContenidoExt.index + 1);
+          if (statusCellExt.getValue().toString().trim() === "") {
+            statusCellExt.setValue(calConfig.status.PENDIENTE);
+          }
+        }
+        Utilities.sleep(500); 
+        sortCulturalCalendar(); 
+      }
+    }
+  } catch (error) {
+    Logger.log(`Error en onEdit (${CONFIG.calendarSheet.name}): ${error.toString()}\nStack: ${error.stack}`);
+  }
 }
 
+/**
+ * Sorts the main cultural calendar sheet based on the default sort criteria defined in CONFIG.
+ * @returns {void}
+ */
 function sortCulturalCalendar() {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CALENDAR_SHEET_NAME);
-    if (!sheet || sheet.getLastRow() < 2) return;
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([
-        { column: COL_INDEX_CAL.FECHA_COMPLETA, ascending: true },
-        { column: COL_INDEX_CAL.HORA_INICIO, ascending: true } 
-    ]);
-    Logger.log(CALENDAR_SHEET_NAME + " re-ordenado.");
-  } catch (error) { Logger.log("Error en sortCulturalCalendar: " + error); }
+    const sheetConfig = CONFIG.calendarSheet;
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetConfig.name);
+    
+    if (!sheet || sheet.getLastRow() < 2) {
+      Logger.log(`Hoja del calendario no encontrada o vacía, no se puede ordenar: ${sheetConfig.name}`);
+      return;
+    }
+    
+    const sortObjects = sheetConfig.defaultSort.map(rule => ({
+      column: sheetConfig.columns[rule.columnKey].index + 1, 
+      ascending: rule.ascending
+    }));
+
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort(sortObjects);
+    Logger.log(`${sheetConfig.name} re-ordenado según la configuración.`);
+  } catch (error) {
+    Logger.log(`Error en sortCulturalCalendar: ${error.toString()}\nStack: ${error.stack}`);
+  }
 }
 
-// --- Funciones para Hoja Secundaria "Cronograma Editorial" ---
-// (La función crearHojaCronogramaEditorial se mantiene igual que en la versión anterior)
+/**
+ * Creates or ensures the "Cronograma Editorial" sheet exists and is formatted correctly.
+ * @returns {void}
+ */
 function crearHojaCronogramaEditorial() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(CRONOGRAMA_SHEET_NAME);
-  if (sheet) { SpreadsheetApp.getUi().alert(`La hoja "${CRONOGRAMA_SHEET_NAME}" ya existe.`); ss.setActiveSheet(sheet); return; }
+  const editorialConfig = CONFIG.editorialSheet;
 
-  sheet = ss.insertSheet(CRONOGRAMA_SHEET_NAME);
-  SpreadsheetApp.getUi().alert(`Se ha creado la hoja "${CRONOGRAMA_SHEET_NAME}".`);
-  ss.setActiveSheet(sheet);
+  const sheetResult = ensureSheetExists(editorialConfig.name, editorialConfig.headerNames, true, ss);
+  const sheet = sheetResult.sheet;
 
-  const headers = ["ID Evento (Opcional)", "Fecha Evento", "Evento/Conmemoración", "Fecha Publicación", "Hora Publicación", "Plataforma", "Texto/Contenido (Ref)", "Visual (Ref)", "Estado Publicación", "Responsable (Opc.)", "Notas Específicas"];
-  const headerRange = sheet.getRange(1, 1, 1, headers.length);
-  headerRange.setValues([headers]).setFontWeight("bold").setBackground(CRONOGRAMA_HEADER_COLOR).setVerticalAlignment("middle").setHorizontalAlignment("center").setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP).setBorder(null, null, true, null, null, null, CRONOGRAMA_BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
-  sheet.setFrozenRows(1);
-
-  const dataRange = sheet.getRange(2, 1, sheet.getMaxRows() - 1, headers.length);
-  const existingBandings = sheet.getBandings();
-  for (let i = 0; i < existingBandings.length; i++) existingBandings[i].remove();
-  const banding = dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
-  banding.setHeaderRowColor(null).setFirstRowColor(CRONOGRAMA_BANDING_COLOR_1).setSecondRowColor(CRONOGRAMA_BANDING_COLOR_2);
-  dataRange.setBorder(true, true, true, true, true, true, CRONOGRAMA_BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID_THIN);
-
-  const firstDataRow = 2; const numRows = sheet.getMaxRows() - 1;
-  sheet.getRange(firstDataRow, headers.indexOf("Plataforma") + 1, numRows, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CRONOGRAMA_PLATFORM_LIST, true).setAllowInvalid(false).build());
-  sheet.getRange(firstDataRow, headers.indexOf("Estado Publicación") + 1, numRows, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CRONOGRAMA_STATUS_LIST, true).setAllowInvalid(false).build());
-  
-  const statusColLetter = String.fromCharCode(64 + headers.indexOf("Estado Publicación") + 1);
-  const statusRange = sheet.getRange(`${statusColLetter}${firstDataRow}:${statusColLetter}${sheet.getMaxRows()}`); // Corrected range
-  var existingRules = sheet.getConditionalFormatRules(); var rulesToKeep = [];
-  for (let i = 0; i < existingRules.length; i++) {
-    var ruleRanges = existingRules[i].getRanges(); var appliesToStatusCol = false;
-    if (ruleRanges) { for (let j = 0; j < ruleRanges.length; j++) { if (ruleRanges[j].getSheet().getName() === CRONOGRAMA_SHEET_NAME && ruleRanges[j].getColumn() === (headers.indexOf("Estado Publicación") + 1)) { appliesToStatusCol = true; break;}}}
-    if (!appliesToStatusCol) rulesToKeep.push(existingRules[i]);
+  if (sheetResult.isNew) { // Only alert if sheet was newly created
+     SpreadsheetApp.getUi().alert(`Se ha creado la hoja "${editorialConfig.name}".`);
   }
-  sheet.setConditionalFormatRules(rulesToKeep);
-  const condRules = [
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Pendiente").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("En Proceso").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Listo para Programar").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Programado").setBackground(CRONOGRAMA_STATUS_PROGRAMADO_COLOR).setRanges([statusRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Publicado").setBackground(CRONOGRAMA_STATUS_PUBLICADO_COLOR).setRanges([statusRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Cancelado").setBackground("#cccccc").setFontColor("#444444").setRanges([statusRange]).build()
-  ];
-  sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat(condRules));
+  ss.setActiveSheet(sheet); 
 
-  const colWidths = [100, 120, 250, 120, 100, 150, 250, 200, 150, 120, 300];
-  colWidths.forEach((width, i) => sheet.setColumnWidth(i + 1, width));
-  sheet.getRange(firstDataRow, headers.indexOf("Fecha Evento") + 1, numRows, 1).setNumberFormat("yyyy-mm-dd");
-  sheet.getRange(firstDataRow, headers.indexOf("Fecha Publicación") + 1, numRows, 1).setNumberFormat("yyyy-mm-dd");
-  Logger.log(`Sheet "${CRONOGRAMA_SHEET_NAME}" creada/formateada.`);
+  applyEditorialSheetStyling(sheet, editorialConfig.styling, editorialConfig.columnWidths, editorialConfig.headerNames.length);
+
+  const validationsConfigs = [
+    { columnKey: 'plataforma', requireValueInList: { listKey: 'plataforma', allowInvalid: false, helpText: "Seleccione la plataforma." } },
+    { columnKey: 'estadoPublicacion', requireValueInList: { listKey: 'estadoPublicacion', allowInvalid: false, helpText: "Seleccione el estado." } }
+  ];
+  applyDataValidations(sheet, validationsConfigs, editorialConfig.columns, editorialConfig.dropdownLists);
+  
+  const preparedConditionalFormatRules = [];
+  for (const statusValue in editorialConfig.conditionalFormattingStatusColors) {
+    const color = editorialConfig.conditionalFormattingStatusColors[statusValue];
+    const rule = {
+      columnKey: 'estadoPublicacion',
+      criteriaType: SpreadsheetApp.BooleanCriteria.TEXT_EQ,
+      criteriaValue: statusValue,
+      backgroundColor: color,
+    };
+    if (statusValue === "Cancelado") {
+      rule.fontColor = "#444444";
+    }
+    preparedConditionalFormatRules.push(rule);
+  }
+  applyConditionalFormattingRules(sheet, preparedConditionalFormatRules, editorialConfig.columns, ['estadoPublicacion']);
+
+  applyNumberFormats(sheet, editorialConfig.numberFormatColumns, editorialConfig.columns);
+  
+  Logger.log(`Sheet "${editorialConfig.name}" creada/formateada.`);
 }
 
-
-// --- NUEVA Función para Generar Presentación Interna de Google Slides ---
+/**
+ * Generates an internal presentation for a specified month based on data from the calendar sheet.
+ * Prompts the user for the month.
+ * @returns {void}
+ */
 function generarPresentacionInterna() {
   const ui = SpreadsheetApp.getUi();
-  const result = ui.prompt('Generar Presentación Interna', 'Ingresa el nombre del mes (ej. Mayo, Junio):', ui.ButtonSet.OK_CANCEL);
+  const result = ui.prompt(
+    'Generar Presentación Interna',
+    'Ingresa el nombre del mes (ej. Mayo, Junio):',
+    ui.ButtonSet.OK_CANCEL
+  );
 
   if (result.getSelectedButton() !== ui.Button.OK) return;
   const mesSolicitado = result.getResponseText().trim();
-  if (!mesSolicitado) { ui.alert('Mes no válido.'); return; }
-
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const calendarSheet = spreadsheet.getSheetByName(CALENDAR_SHEET_NAME);
-  if (!calendarSheet) { ui.alert(`No se encontró la hoja "${CALENDAR_SHEET_NAME}".`); return; }
-
-  const allData = calendarSheet.getDataRange().getValues();
-  const sheetHeaders = allData.shift(); 
-
-  const idx = {};
-  for (const key in COL_INDEX_CAL) {
-    // El índice en COL_INDEX_CAL es basado en 1, el índice en sheetHeaders es basado en 0
-    // Buscamos el nombre del header definido en COL_INDEX_CAL.EVENTO (por ejemplo)
-    // en el array sheetHeaders para obtener su posición real (basada en 0)
-    const headerName = headers[COL_INDEX_CAL[key]-1]; // Obtener el nombre del header esperado
-    idx[key.toLowerCase()] = sheetHeaders.indexOf(headerName); // Guardar el índice real
-  }
-  
-  // Verificar que todas las columnas necesarias fueron encontradas
-  const columnasRequeridas = ["folio", "mes", "fechaCompleta", "evento", "tipoActividad", "descripcionInterna", "areaResponsable", "lugarEspecifico", "horaInicio", "horaFin", "prioridad", "alineacionPsectorial", "metaPsectorialNo", "estadoInterno"];
-  for (const key of columnasRequeridas) {
-    if (idx[key] === -1 || typeof idx[key] === 'undefined') { // typeof check for robustness
-      // Intentar encontrar el nombre del header original para el mensaje de error
-      let originalHeaderName = "Desconocida";
-      for (const colKey in COL_INDEX_CAL){
-          if(key === colKey.toLowerCase()){
-              originalHeaderName = headers[COL_INDEX_CAL[colKey]-1];
-              break;
-          }
-      }
-      ui.alert('Error de Columnas', `La columna "${originalHeaderName}" (clave interna: ${key}) no se encontró en la hoja "${CALENDAR_SHEET_NAME}". Revisa los encabezados.`, ui.ButtonSet.OK);
-      return;
-    }
+  if (!mesSolicitado) {
+    ui.alert('Mes no válido.', 'El nombre del mes no puede estar vacío.', ui.ButtonSet.OK);
+    return;
   }
 
-  const eventosDelMes = allData.filter(row => row[idx.mes] && row[idx.mes].toString().toLowerCase() === mesSolicitado.toLowerCase());
+  const calendarConfig = CONFIG.calendarSheet;
+  const presentationConfig = CONFIG.internalPresentation;
 
-  if (eventosDelMes.length === 0) { ui.alert(`No se encontraron actividades para "${mesSolicitado}" en el calendario interno.`); return; }
+  const eventosDelMes = getCalendarDataForMonth(
+    calendarConfig.name,
+    mesSolicitado,
+    calendarConfig.columns,
+    presentationConfig.requiredCalendarColumns
+  );
+
+  if (eventosDelMes === null) { 
+    return; 
+  }
+  if (eventosDelMes.length === 0) {
+    ui.alert(`No se encontraron actividades para "${mesSolicitado}" en el calendario interno.`);
+    return;
+  }
 
   try {
     const presentationTitle = `Agenda Interna CECAN - ${mesSolicitado} ${new Date().getFullYear()}`;
     const presentation = SlidesApp.create(presentationTitle);
     Logger.log(`Presentación Interna creada: ${presentation.getName()} (ID: ${presentation.getId()})`);
 
-    let slide = presentation.getSlides()[0];
-    slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
-    slide.getPlaceholders().forEach(ph => {
-        if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.TITLE) ph.asShape().getText().setText(presentationTitle);
-        else if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.SUBTITLE) ph.asShape().getText().setText(`Actividades y Gestión de ${mesSolicitado}`);
-        else ph.asShape().getText().setText("");
-    });
+    addTitleSlideToPresentation(
+      presentation,
+      presentationTitle,
+      `Actividades y Gestión de ${mesSolicitado}`,
+      presentationConfig
+    );
 
     eventosDelMes.forEach((eventoRow) => {
-      slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
-      slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
-
-      const titlePlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.TITLE)[0];
-      if (titlePlaceholder) {
-        let tituloDiapositiva = `${eventoRow[idx.folio] || "S/F"} - ${eventoRow[idx.evento] || "Actividad sin Título"}`;
-        titlePlaceholder.asShape().getText().setText(tituloDiapositiva);
-        const titleTextRange = titlePlaceholder.asShape().getText();
-        titleTextRange.getTextStyle().setFontFamily(SLIDE_INT_TITLE_FONT_FAMILY).setFontSize(SLIDE_INT_TITLE_FONT_SIZE).setForegroundColor(SLIDE_INT_TITLE_FONT_COLOR);
-        
-        const titleShape = titlePlaceholder.asShape();
-        const width = titleShape.getWidth(); const height = titleShape.getHeight();
-        const left = titleShape.getLeft(); const top = titleShape.getTop();
-        const titleBgShape = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, left - SLIDE_INT_TITLE_SHAPE_PADDING, top - SLIDE_INT_TITLE_SHAPE_PADDING, width + (2*SLIDE_INT_TITLE_SHAPE_PADDING), height + (2*SLIDE_INT_TITLE_SHAPE_PADDING));
-        titleBgShape.getFill().setSolidFill(SLIDE_INT_TITLE_SHAPE_FILL_COLOR);
-        titleBgShape.sendToBack(); titleShape.bringToFront();
-      }
-
-      const bodyPlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.BODY)[0];
-      if (bodyPlaceholder) {
-        const bodyText = bodyPlaceholder.asShape().getText();
-        bodyText.clear(); 
-
-        let fechaFormateada = eventoRow[idx.fechacompleta]; // Note: idx keys are lowercase
-        if (eventoRow[idx.fechacompleta] instanceof Date) {
-            fechaFormateada = Utilities.formatDate(eventoRow[idx.fechacompleta], Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
-        } else if (typeof eventoRow[idx.fechacompleta] === 'string' && eventoRow[idx.fechacompleta].match(/^\d{4}-\d{2}-\d{2}$/)) {
-            try {
-                const dateObj = new Date(eventoRow[idx.fechacompleta] + "T00:00:00Z");
-                 fechaFormateada = Utilities.formatDate(dateObj, Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
-            } catch(e) { /* Mantener string original */ }
-        }
-        
-        let horaInicioStr = eventoRow[idx.horainicio] instanceof Date ? Utilities.formatDate(eventoRow[idx.horainicio], Session.getScriptTimeZone(), "HH:mm") : (eventoRow[idx.horainicio] || "");
-        let horaFinStr = eventoRow[idx.horafin] instanceof Date ? Utilities.formatDate(eventoRow[idx.horafin], Session.getScriptTimeZone(), "HH:mm") : (eventoRow[idx.horafin] || "");
-        let horario = (horaInicioStr || horaFinStr) ? `${horaInicioStr || "--:--"} - ${horaFinStr || "--:--"}` : "No especificado";
-
-        bodyText.appendParagraph(`Fecha: ${fechaFormateada || "No especificada"}  |  Horario: ${horario}`)
-                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR).setBold(true);
-        
-        bodyText.appendParagraph(`\nTipo: ${eventoRow[idx.tipoactividad] || "N/A"} | Lugar: ${eventoRow[idx.lugarespecifico] || "No especificado"}`)
-                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
-        
-        const prioridadText = eventoRow[idx.prioridad] || "No especificada";
-        let prioridadColor = SLIDE_INT_BODY_FONT_COLOR;
-        if (prioridadText.toLowerCase() === 'alta') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_ALTA;
-        else if (prioridadText.toLowerCase() === 'media') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_MEDIA;
-        else if (prioridadText.toLowerCase() === 'baja') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_BAJA;
-
-
-        bodyText.appendParagraph(`\nÁrea Responsable: ${eventoRow[idx.arearesponsable] || "No especificada"}`)
-                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
-        
-        const pRun = bodyText.appendParagraph(`\nPrioridad: `).getRange().getTextStyle();
-        pRun.setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
-        bodyText.appendParagraph(prioridadText).getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(prioridadColor).setBold(true);
-
-        bodyText.appendParagraph(`\nDescripción/Objetivos: ${eventoRow[idx.descripcioninterna] || "No especificada"}`)
-                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
-
-        if(eventoRow[idx.alineacionpsectorial] || eventoRow[idx.metapsectorialno]){
-            bodyText.appendParagraph(`\nAlineación PSECTORIAL: ${eventoRow[idx.alineacionpsectorial] || "N/A"} (Meta: ${eventoRow[idx.metapsectorialno] || "N/A"})`)
-                    .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE -1).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
-        }
-        bodyText.appendParagraph(`\nEstado Interno: ${eventoRow[idx.estadointerno] || "No especificado"}`)
-                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR).setItalic(true);
-      }
+      addEventSlideToPresentation(
+        presentation,
+        eventoRow,
+        presentationConfig,
+        SlidesApp.PredefinedLayout.TITLE_AND_BODY
+      );
     });
 
-    slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
-    slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
-    slide.insertTextBox("CECAN - Planificación Interna", 50, 220, 400, 100).getText().getTextStyle().setFontFamily(SLIDE_INT_TITLE_FONT_FAMILY).setFontSize(20).setForegroundColor(SLIDE_INT_TITLE_FONT_COLOR);
+    addEndSlideToPresentation(
+      presentation,
+      presentationConfig.endSlideText, 
+      presentationConfig,
+      SlidesApp.PredefinedLayout.BLANK
+    );
     
     const presentationUrl = presentation.getUrl();
     Logger.log(`Presentación Interna lista: ${presentationUrl}`);
