@@ -1,0 +1,404 @@
+/**
+ * Script Combinado para Google Sheets: Gestión del Calendario Cultural Estratégico (con campos internos),
+ * Cronograma Editorial y Generador de Presentaciones del CECAN.
+ * (Versión con campos de gestión interna y presentación adaptada)
+ */
+
+// --- Constantes de Configuración Hoja Principal "Calendario Cultural CECAN" ---
+var CALENDAR_SHEET_NAME = "Calendario Cultural CECAN";
+// Índices de columna (basados en 1) - ¡CRUCIAL AJUSTAR SI EL ORDEN CAMBIA!
+var COL_INDEX_CAL = {
+  FOLIO: 1,
+  ID_EVENTO: 2, // Puede ser el mismo que Folio o un ID para comunicación externa
+  MES: 3,
+  DIA: 4,
+  FECHA_COMPLETA: 5,
+  EVENTO: 6, // Nombre del Evento/Actividad
+  TIPO_ACTIVIDAD: 7,
+  ALCANCE: 8,
+  RELEVANCIA_CULTURAL: 9, // Para eventos públicos
+  DESCRIPCION_INTERNA: 10,
+  SUGERENCIAS_CECAN: 11, // Para comunicación externa
+  PROYECTOS_CECAN: 12,
+  AREA_RESPONSABLE: 13,
+  LUGAR_ESPECIFICO: 14,
+  HORA_INICIO: 15,
+  HORA_FIN: 16,
+  PRIORIDAD: 17,
+  ALINEACION_PSECTORIAL: 18,
+  META_PSECTORIAL_NO: 19,
+  ESTADO_CONTENIDO_EXT: 20, // Para comunicación externa
+  ESTADO_INTERNO: 21,
+  ESTADO_VERIFICACION_EXT: 22 // Para fechas externas
+};
+
+var CONTENT_STATUS_CAL = { // Para Estado Contenido Externo
+  PENDIENTE: "Pendiente",
+  EN_PROCESO: "En Proceso",
+  LISTO: "Listo",
+  PUBLICADO: "Publicado"
+};
+var STATUS_COLORS_CAL = { // Para Estado Contenido Externo
+  PENDIENTE: "#FFF2CC" // Amarillo Pastel
+};
+
+// Nuevas Listas para Desplegables de Calendario Interno
+const TIPOS_ACTIVIDAD_LIST = ["Evento Público", "Conmemoración Externa", "Reunión Interna", "Capacitación", "Hito de Proyecto", "Entrega Administrativa", "Logística Evento", "Otro"];
+const PRIORIDAD_LIST = ["Alta", "Media", "Baja"];
+const ESTADO_INTERNO_LIST = ["Planeado", "Confirmado", "En Logística", "En Ejecución", "Completado", "Pospuesto", "Cancelado"];
+const ALCANCE_LIST = ["Mundial", "Nacional", "Estatal (Nayarit)", "Municipal", "Comunitario", "Interno CECAN", "Interinstitucional"];
+
+
+// --- Constantes de Configuración Hoja "Cronograma Editorial" ---
+const CRONOGRAMA_SHEET_NAME = "Cronograma Editorial";
+const CRONOGRAMA_HEADER_COLOR = "#e2d8f3";
+const CRONOGRAMA_BANDING_COLOR_1 = "#ffffff";
+const CRONOGRAMA_BANDING_COLOR_2 = "#f3f6f4";
+const CRONOGRAMA_BORDER_COLOR = "#d9d9d9";
+const CRONOGRAMA_STATUS_PENDING_COLOR = "#fffacd";
+const CRONOGRAMA_STATUS_PROGRAMADO_COLOR = "#cfe2f3";
+const CRONOGRAMA_STATUS_PUBLICADO_COLOR = "#d9ead3";
+const CRONOGRAMA_PLATFORM_LIST = ["Facebook", "Instagram Feed", "Instagram Story", "Instagram Reel", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Web CECAN", "Telegram", "WhatsApp Status", "Otro"];
+const CRONOGRAMA_STATUS_LIST = ["Pendiente", "En Proceso", "Listo para Programar", "Programado", "Publicado", "Cancelado"];
+
+// --- Constantes para la Presentación de Google Slides (Interna) ---
+const SLIDE_INT_TITLE_FONT_FAMILY = "Calibri";
+const SLIDE_INT_TITLE_FONT_SIZE = 28;
+const SLIDE_INT_TITLE_FONT_COLOR = "#222222";
+const SLIDE_INT_TITLE_SHAPE_FILL_COLOR = "#e0e0e0";
+const SLIDE_INT_TITLE_SHAPE_PADDING = 10;
+const SLIDE_INT_BODY_FONT_FAMILY = "Calibri";
+const SLIDE_INT_BODY_FONT_SIZE = 12;
+const SLIDE_INT_BODY_FONT_COLOR = "#333333";
+const SLIDE_INT_BACKGROUND_COLOR = "#f5f5f5";
+const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_ALTA = "#E53935"; // Rojo
+const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_MEDIA = "#FFB300"; // Naranja/Ámbar
+const SLIDE_INT_ACCENT_COLOR_PRIORIDAD_BAJA = "#43A047"; // Verde
+
+
+// --- Función onOpen Unificada ---
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Herramientas CECAN')
+    .addItem('⚙️ Configurar Calendario Principal (1 vez)', 'setupCulturalCalendar')
+    .addItem('🔄 Re-ordenar Calendario Principal', 'sortCulturalCalendar')
+    .addSeparator()
+    .addItem('📊 Crear/Ver Hoja Cronograma Editorial', 'crearHojaCronogramaEditorial')
+    .addSeparator()
+    .addItem('🖼️ Generar Presentación Interna (Mes)', 'generarPresentacionInterna')
+    .addToUi();
+}
+
+// --- Funciones para Hoja Principal "Calendario Cultural CECAN" ---
+function setupCulturalCalendar() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName(CALENDAR_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(CALENDAR_SHEET_NAME);
+    Logger.log("Hoja '" + CALENDAR_SHEET_NAME + "' creada.");
+  } else {
+    Logger.log("Hoja '" + CALENDAR_SHEET_NAME + "' ya existe.");
+  }
+
+  var headers = [
+    "Folio", "ID Evento", "Mes", "Día", "Fecha Completa", "Evento / Actividad", "Tipo Actividad",
+    "Alcance", "Relevancia Cultural (Público)", "Descripción (Interna)", "Sugerencias CECAN (Público)",
+    "Proyectos CECAN Vinculados", "Área Responsable CECAN", "Lugar Específico", "Hora Inicio", "Hora Fin",
+    "Prioridad", "Alineación PSECTORIAL", "Meta PSECTORIAL No.", "Estado Contenido (Externo)",
+    "Estado Interno", "Estado Verificación (Externo)"
+  ];
+  
+  if (sheet.getLastColumn() < headers.length) {
+      sheet.insertColumnsAfter(sheet.getLastColumn(), headers.length - sheet.getLastColumn());
+  }
+  var headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setValues([headers]).setFontWeight("bold");
+  Logger.log("Encabezados verificados/escritos en " + CALENDAR_SHEET_NAME);
+
+  // Datos de ejemplo: Junio-Julio, luego Q3 (Ago-Oct), Q4 (Nov-Dic)
+  var calendarData = [
+    // Junio 2025
+    ["CECAN-2025-06-001", "EXT-JUN-001", "Junio", 12, "2025-06-12", "Aniversario Luctuoso de Eduardo Capelo", "Conmemoración Externa", "Estatal (Nayarit)", "Artista gráfico y creador de calendarios.", "Recordar su legado.", "Publicar sobre su trabajo.", "", "Difusión Cultural", "Redes Sociales", "", "", "Media", "Eje Patrimonio", "2.1", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
+    ["CECAN-2025-06-002", "INT-JUN-001", "Junio", 15, "2025-06-15", "Reunión de Planeación Festival Amado Nervo", "Reunión Interna", "Interno CECAN", "", "Definir sedes y artistas principales.", "", "Festival Amado Nervo", "Dirección Festivales", "Sala de Juntas CECAN", "10:00", "12:00", "Alta", "Eje Festivales", "3.1", "", "Confirmado", "N/A"],
+    ["CECAN-2025-06-003", "EXT-JUN-002", "Junio", 21, "2025-06-21", "Día Mundial de la Música", "Evento Público", "Mundial", "Celebración de la música.", "Organizar pequeño concierto.", "Destacar artistas locales.", "Música Nayarit", "Fomento Musical", "Plaza Principal Tepic", "18:00", "20:00", "Media", "Eje Fomento Artístico", "1.1", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
+    // Julio 2025
+    ["CECAN-2025-07-001", "EXT-JUL-001", "Julio", 6, "2025-07-06", "Aniversario Nacimiento Frida Kahlo", "Conmemoración Externa", "Nacional", "Figura icónica del arte mexicano.", "Posts en redes.", "Destacar su influencia.", "", "Comunicación", "Redes Sociales", "", "", "Media", "Eje Artes Visuales", "2.2", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
+    ["CECAN-2025-07-002", "INT-JUL-001", "Julio", 10, "2025-07-10", "Capacitación Uso Nueva Plataforma Web", "Capacitación", "Interno CECAN", "", "Personal de áreas sustantivas aprende a usar CMS.", "", "Modernización Digital", "TICs", "Aula Capacitación CECAN", "09:00", "13:00", "Alta", "Eje Fortalecimiento Inst.", "4.1", "", "Confirmado", "N/A"],
+    // Q3 Ejemplo (Agosto)
+    ["CECAN-2025-08-001", "EXT-AGO-001", "Agosto", 15, "2025-08-15", "Día Nacional del Cine Mexicano", "Evento Público", "Nacional", "Fomento a la cinematografía.", "Ciclo de cine nayarita.", "Promocionar ciclo.", "AIEC", "Cinematografía", "Cineteca Tepic", "19:00", "21:00", "Media", "Eje Audiovisual", "2.3", CONTENT_STATUS_CAL.PENDIENTE, "Planeado", "Verificado"],
+    // Q4 Ejemplo (Noviembre)
+    ["CECAN-2025-11-001", "EXT-NOV-001", "Noviembre", 1, "2025-11-01", "Día de Muertos - Exposición Ofrendas", "Evento Público", "Estatal (Nayarit)", "Tradición mexicana.", "Montaje y difusión de exposición.", "Invitar al público.", "Patrimonio CECAN", "Museografía", "Patio Central CECAN", "10:00", "20:00", "Alta", "Eje Patrimonio", "2.1", CONTENT_STATUS_CAL.PENDIENTE, "Confirmado", "Verificado"],
+  ];
+
+  if (sheet.getLastRow() < 2 && calendarData.length > 0) {
+      sheet.getRange(2, 1, calendarData.length, headers.length).setValues(calendarData);
+      Logger.log("Datos iniciales (Jun-Jul, Q3, Q4) poblados en " + CALENDAR_SHEET_NAME);
+  } else if (calendarData.length > 0) {
+      Logger.log("La hoja " + CALENDAR_SHEET_NAME + " ya contiene datos. No se añadieron los datos iniciales.");
+  }
+
+  // Formato Condicional para 'Estado Contenido (Externo)'
+  var rules = sheet.getConditionalFormatRules(); var newRules = [];
+  for (var i = 0; i < rules.length; i++) {
+    var rule = rules[i]; var ranges = rule.getRanges(); var applies = false;
+    if (ranges && ranges.length > 0) applies = ranges[0].getSheet().getName() === CALENDAR_SHEET_NAME;
+    var criteria = rule.getBooleanCondition();
+    if (!applies || !criteria || criteria.getCriteriaType() !== SpreadsheetApp.BooleanCriteria.TEXT_EQ || criteria.getCriteriaValues()[0] !== CONTENT_STATUS_CAL.PENDIENTE) {
+      newRules.push(rule);
+    }
+  }
+  newRules.push(SpreadsheetApp.newConditionalFormatRule().setRanges([sheet.getRange(2, COL_INDEX_CAL.ESTADO_CONTENIDO_EXT, sheet.getMaxRows() -1 , 1)]).whenTextEqualTo(CONTENT_STATUS_CAL.PENDIENTE).setBackground(STATUS_COLORS_CAL.PENDIENTE).build());
+  sheet.setConditionalFormatRules(newRules);
+  Logger.log("Formato condicional actualizado en " + CALENDAR_SHEET_NAME);
+
+  // Validación de Datos
+  sheet.getRange(2, COL_INDEX_CAL.ESTADO_CONTENIDO_EXT, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(Object.values(CONTENT_STATUS_CAL)).setAllowInvalid(false).setHelpText("Estado del contenido para difusión externa.").build());
+  sheet.getRange(2, COL_INDEX_CAL.TIPO_ACTIVIDAD, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(TIPOS_ACTIVIDAD_LIST).setAllowInvalid(false).setHelpText("Seleccione el tipo de actividad.").build());
+  sheet.getRange(2, COL_INDEX_CAL.PRIORIDAD, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PRIORIDAD_LIST).setAllowInvalid(false).setHelpText("Defina la prioridad.").build());
+  sheet.getRange(2, COL_INDEX_CAL.ESTADO_INTERNO, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ESTADO_INTERNO_LIST).setAllowInvalid(false).setHelpText("Estado de gestión interna de la actividad.").build());
+  sheet.getRange(2, COL_INDEX_CAL.ALCANCE, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ALCANCE_LIST).setAllowInvalid(false).setHelpText("Defina el alcance de la actividad.").build());
+  Logger.log("Validación de datos configurada en " + CALENDAR_SHEET_NAME);
+
+  sheet.getRange(2, COL_INDEX_CAL.FECHA_COMPLETA, sheet.getMaxRows() - 1, 1).setNumberFormat("yyyy-mm-dd");
+  sheet.getRange(2, COL_INDEX_CAL.HORA_INICIO, sheet.getMaxRows() - 1, 1).setNumberFormat("hh:mm AM/PM");
+  sheet.getRange(2, COL_INDEX_CAL.HORA_FIN, sheet.getMaxRows() - 1, 1).setNumberFormat("hh:mm AM/PM");
+
+  sortCulturalCalendar();
+  try { 
+    headers.forEach((header, i) => { // Autoajustar cada columna individualmente
+        sheet.autoResizeColumn(i + 1);
+    });
+  } catch(e) { Logger.log("Error en autoResizeColumn (puede ignorarse): " + e); }
+  Logger.log("Configuración inicial completa para " + CALENDAR_SHEET_NAME);
+}
+
+function onEdit(e) {
+  try {
+    var range = e.range; var sheet = range.getSheet();
+    if (sheet.getName() !== CALENDAR_SHEET_NAME || range.getRow() <= 1) return;
+    
+    var editedColumn = range.getColumn();
+    // Si se edita Fecha Completa u Hora Inicio, reordenar.
+    if (editedColumn === COL_INDEX_CAL.FECHA_COMPLETA || editedColumn === COL_INDEX_CAL.HORA_INICIO) {
+        if (range.getValue() !== "") { 
+            // Si se edita Fecha y Estado Contenido Ext está vacío, poner Pendiente
+            if (editedColumn === COL_INDEX_CAL.FECHA_COMPLETA) {
+                var statusCellExt = sheet.getRange(range.getRow(), COL_INDEX_CAL.ESTADO_CONTENIDO_EXT);
+                if (statusCellExt.getValue() === "") statusCellExt.setValue(CONTENT_STATUS_CAL.PENDIENTE);
+            }
+            Utilities.sleep(500); 
+            sortCulturalCalendar(); 
+        }
+    }
+  } catch (error) { Logger.log("Error en onEdit (" + CALENDAR_SHEET_NAME + "): " + error); }
+}
+
+function sortCulturalCalendar() {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CALENDAR_SHEET_NAME);
+    if (!sheet || sheet.getLastRow() < 2) return;
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([
+        { column: COL_INDEX_CAL.FECHA_COMPLETA, ascending: true },
+        { column: COL_INDEX_CAL.HORA_INICIO, ascending: true } 
+    ]);
+    Logger.log(CALENDAR_SHEET_NAME + " re-ordenado.");
+  } catch (error) { Logger.log("Error en sortCulturalCalendar: " + error); }
+}
+
+// --- Funciones para Hoja Secundaria "Cronograma Editorial" ---
+// (La función crearHojaCronogramaEditorial se mantiene igual que en la versión anterior)
+function crearHojaCronogramaEditorial() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(CRONOGRAMA_SHEET_NAME);
+  if (sheet) { SpreadsheetApp.getUi().alert(`La hoja "${CRONOGRAMA_SHEET_NAME}" ya existe.`); ss.setActiveSheet(sheet); return; }
+
+  sheet = ss.insertSheet(CRONOGRAMA_SHEET_NAME);
+  SpreadsheetApp.getUi().alert(`Se ha creado la hoja "${CRONOGRAMA_SHEET_NAME}".`);
+  ss.setActiveSheet(sheet);
+
+  const headers = ["ID Evento (Opcional)", "Fecha Evento", "Evento/Conmemoración", "Fecha Publicación", "Hora Publicación", "Plataforma", "Texto/Contenido (Ref)", "Visual (Ref)", "Estado Publicación", "Responsable (Opc.)", "Notas Específicas"];
+  const headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setValues([headers]).setFontWeight("bold").setBackground(CRONOGRAMA_HEADER_COLOR).setVerticalAlignment("middle").setHorizontalAlignment("center").setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP).setBorder(null, null, true, null, null, null, CRONOGRAMA_BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  sheet.setFrozenRows(1);
+
+  const dataRange = sheet.getRange(2, 1, sheet.getMaxRows() - 1, headers.length);
+  const existingBandings = sheet.getBandings();
+  for (let i = 0; i < existingBandings.length; i++) existingBandings[i].remove();
+  const banding = dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+  banding.setHeaderRowColor(null).setFirstRowColor(CRONOGRAMA_BANDING_COLOR_1).setSecondRowColor(CRONOGRAMA_BANDING_COLOR_2);
+  dataRange.setBorder(true, true, true, true, true, true, CRONOGRAMA_BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID_THIN);
+
+  const firstDataRow = 2; const numRows = sheet.getMaxRows() - 1;
+  sheet.getRange(firstDataRow, headers.indexOf("Plataforma") + 1, numRows, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CRONOGRAMA_PLATFORM_LIST, true).setAllowInvalid(false).build());
+  sheet.getRange(firstDataRow, headers.indexOf("Estado Publicación") + 1, numRows, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CRONOGRAMA_STATUS_LIST, true).setAllowInvalid(false).build());
+  
+  const statusColLetter = String.fromCharCode(64 + headers.indexOf("Estado Publicación") + 1);
+  const statusRange = sheet.getRange(`${statusColLetter}${firstDataRow}:${statusColLetter}${sheet.getMaxRows()}`); // Corrected range
+  var existingRules = sheet.getConditionalFormatRules(); var rulesToKeep = [];
+  for (let i = 0; i < existingRules.length; i++) {
+    var ruleRanges = existingRules[i].getRanges(); var appliesToStatusCol = false;
+    if (ruleRanges) { for (let j = 0; j < ruleRanges.length; j++) { if (ruleRanges[j].getSheet().getName() === CRONOGRAMA_SHEET_NAME && ruleRanges[j].getColumn() === (headers.indexOf("Estado Publicación") + 1)) { appliesToStatusCol = true; break;}}}
+    if (!appliesToStatusCol) rulesToKeep.push(existingRules[i]);
+  }
+  sheet.setConditionalFormatRules(rulesToKeep);
+  const condRules = [
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Pendiente").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("En Proceso").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Listo para Programar").setBackground(CRONOGRAMA_STATUS_PENDING_COLOR).setRanges([statusRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Programado").setBackground(CRONOGRAMA_STATUS_PROGRAMADO_COLOR).setRanges([statusRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Publicado").setBackground(CRONOGRAMA_STATUS_PUBLICADO_COLOR).setRanges([statusRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo("Cancelado").setBackground("#cccccc").setFontColor("#444444").setRanges([statusRange]).build()
+  ];
+  sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat(condRules));
+
+  const colWidths = [100, 120, 250, 120, 100, 150, 250, 200, 150, 120, 300];
+  colWidths.forEach((width, i) => sheet.setColumnWidth(i + 1, width));
+  sheet.getRange(firstDataRow, headers.indexOf("Fecha Evento") + 1, numRows, 1).setNumberFormat("yyyy-mm-dd");
+  sheet.getRange(firstDataRow, headers.indexOf("Fecha Publicación") + 1, numRows, 1).setNumberFormat("yyyy-mm-dd");
+  Logger.log(`Sheet "${CRONOGRAMA_SHEET_NAME}" creada/formateada.`);
+}
+
+
+// --- NUEVA Función para Generar Presentación Interna de Google Slides ---
+function generarPresentacionInterna() {
+  const ui = SpreadsheetApp.getUi();
+  const result = ui.prompt('Generar Presentación Interna', 'Ingresa el nombre del mes (ej. Mayo, Junio):', ui.ButtonSet.OK_CANCEL);
+
+  if (result.getSelectedButton() !== ui.Button.OK) return;
+  const mesSolicitado = result.getResponseText().trim();
+  if (!mesSolicitado) { ui.alert('Mes no válido.'); return; }
+
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const calendarSheet = spreadsheet.getSheetByName(CALENDAR_SHEET_NAME);
+  if (!calendarSheet) { ui.alert(`No se encontró la hoja "${CALENDAR_SHEET_NAME}".`); return; }
+
+  const allData = calendarSheet.getDataRange().getValues();
+  const sheetHeaders = allData.shift(); 
+
+  const idx = {};
+  for (const key in COL_INDEX_CAL) {
+    // El índice en COL_INDEX_CAL es basado en 1, el índice en sheetHeaders es basado en 0
+    // Buscamos el nombre del header definido en COL_INDEX_CAL.EVENTO (por ejemplo)
+    // en el array sheetHeaders para obtener su posición real (basada en 0)
+    const headerName = headers[COL_INDEX_CAL[key]-1]; // Obtener el nombre del header esperado
+    idx[key.toLowerCase()] = sheetHeaders.indexOf(headerName); // Guardar el índice real
+  }
+  
+  // Verificar que todas las columnas necesarias fueron encontradas
+  const columnasRequeridas = ["folio", "mes", "fechaCompleta", "evento", "tipoActividad", "descripcionInterna", "areaResponsable", "lugarEspecifico", "horaInicio", "horaFin", "prioridad", "alineacionPsectorial", "metaPsectorialNo", "estadoInterno"];
+  for (const key of columnasRequeridas) {
+    if (idx[key] === -1 || typeof idx[key] === 'undefined') { // typeof check for robustness
+      // Intentar encontrar el nombre del header original para el mensaje de error
+      let originalHeaderName = "Desconocida";
+      for (const colKey in COL_INDEX_CAL){
+          if(key === colKey.toLowerCase()){
+              originalHeaderName = headers[COL_INDEX_CAL[colKey]-1];
+              break;
+          }
+      }
+      ui.alert('Error de Columnas', `La columna "${originalHeaderName}" (clave interna: ${key}) no se encontró en la hoja "${CALENDAR_SHEET_NAME}". Revisa los encabezados.`, ui.ButtonSet.OK);
+      return;
+    }
+  }
+
+  const eventosDelMes = allData.filter(row => row[idx.mes] && row[idx.mes].toString().toLowerCase() === mesSolicitado.toLowerCase());
+
+  if (eventosDelMes.length === 0) { ui.alert(`No se encontraron actividades para "${mesSolicitado}" en el calendario interno.`); return; }
+
+  try {
+    const presentationTitle = `Agenda Interna CECAN - ${mesSolicitado} ${new Date().getFullYear()}`;
+    const presentation = SlidesApp.create(presentationTitle);
+    Logger.log(`Presentación Interna creada: ${presentation.getName()} (ID: ${presentation.getId()})`);
+
+    let slide = presentation.getSlides()[0];
+    slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
+    slide.getPlaceholders().forEach(ph => {
+        if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.TITLE) ph.asShape().getText().setText(presentationTitle);
+        else if (ph.getPlaceholderType() === SlidesApp.PlaceholderType.SUBTITLE) ph.asShape().getText().setText(`Actividades y Gestión de ${mesSolicitado}`);
+        else ph.asShape().getText().setText("");
+    });
+
+    eventosDelMes.forEach((eventoRow) => {
+      slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
+      slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
+
+      const titlePlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.TITLE)[0];
+      if (titlePlaceholder) {
+        let tituloDiapositiva = `${eventoRow[idx.folio] || "S/F"} - ${eventoRow[idx.evento] || "Actividad sin Título"}`;
+        titlePlaceholder.asShape().getText().setText(tituloDiapositiva);
+        const titleTextRange = titlePlaceholder.asShape().getText();
+        titleTextRange.getTextStyle().setFontFamily(SLIDE_INT_TITLE_FONT_FAMILY).setFontSize(SLIDE_INT_TITLE_FONT_SIZE).setForegroundColor(SLIDE_INT_TITLE_FONT_COLOR);
+        
+        const titleShape = titlePlaceholder.asShape();
+        const width = titleShape.getWidth(); const height = titleShape.getHeight();
+        const left = titleShape.getLeft(); const top = titleShape.getTop();
+        const titleBgShape = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, left - SLIDE_INT_TITLE_SHAPE_PADDING, top - SLIDE_INT_TITLE_SHAPE_PADDING, width + (2*SLIDE_INT_TITLE_SHAPE_PADDING), height + (2*SLIDE_INT_TITLE_SHAPE_PADDING));
+        titleBgShape.getFill().setSolidFill(SLIDE_INT_TITLE_SHAPE_FILL_COLOR);
+        titleBgShape.sendToBack(); titleShape.bringToFront();
+      }
+
+      const bodyPlaceholder = slide.getPlaceholders(SlidesApp.PlaceholderType.BODY)[0];
+      if (bodyPlaceholder) {
+        const bodyText = bodyPlaceholder.asShape().getText();
+        bodyText.clear(); 
+
+        let fechaFormateada = eventoRow[idx.fechacompleta]; // Note: idx keys are lowercase
+        if (eventoRow[idx.fechacompleta] instanceof Date) {
+            fechaFormateada = Utilities.formatDate(eventoRow[idx.fechacompleta], Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
+        } else if (typeof eventoRow[idx.fechacompleta] === 'string' && eventoRow[idx.fechacompleta].match(/^\d{4}-\d{2}-\d{2}$/)) {
+            try {
+                const dateObj = new Date(eventoRow[idx.fechacompleta] + "T00:00:00Z");
+                 fechaFormateada = Utilities.formatDate(dateObj, Session.getScriptTimeZone(), "dd 'de' MMMM 'de' yyyy");
+            } catch(e) { /* Mantener string original */ }
+        }
+        
+        let horaInicioStr = eventoRow[idx.horainicio] instanceof Date ? Utilities.formatDate(eventoRow[idx.horainicio], Session.getScriptTimeZone(), "HH:mm") : (eventoRow[idx.horainicio] || "");
+        let horaFinStr = eventoRow[idx.horafin] instanceof Date ? Utilities.formatDate(eventoRow[idx.horafin], Session.getScriptTimeZone(), "HH:mm") : (eventoRow[idx.horafin] || "");
+        let horario = (horaInicioStr || horaFinStr) ? `${horaInicioStr || "--:--"} - ${horaFinStr || "--:--"}` : "No especificado";
+
+        bodyText.appendParagraph(`Fecha: ${fechaFormateada || "No especificada"}  |  Horario: ${horario}`)
+                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR).setBold(true);
+        
+        bodyText.appendParagraph(`\nTipo: ${eventoRow[idx.tipoactividad] || "N/A"} | Lugar: ${eventoRow[idx.lugarespecifico] || "No especificado"}`)
+                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
+        
+        const prioridadText = eventoRow[idx.prioridad] || "No especificada";
+        let prioridadColor = SLIDE_INT_BODY_FONT_COLOR;
+        if (prioridadText.toLowerCase() === 'alta') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_ALTA;
+        else if (prioridadText.toLowerCase() === 'media') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_MEDIA;
+        else if (prioridadText.toLowerCase() === 'baja') prioridadColor = SLIDE_INT_ACCENT_COLOR_PRIORIDAD_BAJA;
+
+
+        bodyText.appendParagraph(`\nÁrea Responsable: ${eventoRow[idx.arearesponsable] || "No especificada"}`)
+                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
+        
+        const pRun = bodyText.appendParagraph(`\nPrioridad: `).getRange().getTextStyle();
+        pRun.setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
+        bodyText.appendParagraph(prioridadText).getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(prioridadColor).setBold(true);
+
+        bodyText.appendParagraph(`\nDescripción/Objetivos: ${eventoRow[idx.descripcioninterna] || "No especificada"}`)
+                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
+
+        if(eventoRow[idx.alineacionpsectorial] || eventoRow[idx.metapsectorialno]){
+            bodyText.appendParagraph(`\nAlineación PSECTORIAL: ${eventoRow[idx.alineacionpsectorial] || "N/A"} (Meta: ${eventoRow[idx.metapsectorialno] || "N/A"})`)
+                    .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE -1).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR);
+        }
+        bodyText.appendParagraph(`\nEstado Interno: ${eventoRow[idx.estadointerno] || "No especificado"}`)
+                .getRange().getTextStyle().setFontFamily(SLIDE_INT_BODY_FONT_FAMILY).setFontSize(SLIDE_INT_BODY_FONT_SIZE).setForegroundColor(SLIDE_INT_BODY_FONT_COLOR).setItalic(true);
+      }
+    });
+
+    slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+    slide.getBackground().setSolidFill(SLIDE_INT_BACKGROUND_COLOR);
+    slide.insertTextBox("CECAN - Planificación Interna", 50, 220, 400, 100).getText().getTextStyle().setFontFamily(SLIDE_INT_TITLE_FONT_FAMILY).setFontSize(20).setForegroundColor(SLIDE_INT_TITLE_FONT_COLOR);
+    
+    const presentationUrl = presentation.getUrl();
+    Logger.log(`Presentación Interna lista: ${presentationUrl}`);
+    ui.alert('Presentación Interna Generada', `La presentación "${presentationTitle}" ha sido creada.\nPuedes acceder a ella aquí: ${presentationUrl}`, ui.ButtonSet.OK);
+
+  } catch (error) {
+    Logger.log(`Error al generar presentación interna: ${error.toString()}\nStack: ${error.stack}`);
+    ui.alert('Error', `Ocurrió un error al generar la presentación interna: ${error.message}`, ui.ButtonSet.OK);
+  }
+}
