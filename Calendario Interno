@@ -1,0 +1,425 @@
+/**
+ * Script para Google Slides: Generador de Presentación para el Proyecto
+ * "Calendario Estratégico Cultural CECAN"
+ *
+ * Crea una presentación sofisticada para exponer el proyecto.
+ */
+
+// --- Configuración de Diseño y Contenido ---
+const PRESENTATION_TITLE = "Proyecto: Calendario Estratégico Cultural CECAN";
+const PRESENTER_NOTES_DEFAULT = "Desarrollar este punto con ejemplos específicos del CECAN...";
+
+// Paleta de Colores Sugerida (Puedes ajustarlos a la identidad del CECAN)
+const COLORS = {
+  PRIMARY: '#005A8D',   // Azul oscuro para títulos y elementos principales
+  SECONDARY: '#00A9E0', // Azul más claro para acentos y subtítulos
+  ACCENT: '#FDB813',    // Amarillo/Dorado para llamadas a la acción o destacados
+  TEXT_DARK: '#212121', // Gris oscuro para texto principal
+  TEXT_LIGHT: '#FFFFFF',// Blanco para texto sobre fondos oscuros
+  BACKGROUND_LIGHT: '#F8F9FA', // Un fondo muy claro, casi blanco
+  BACKGROUND_DARK: '#005A8D',  // Usar el primario como fondo oscuro para contraste
+};
+
+// Fuentes Sugeridas
+const FONT_FAMILY_TITLES = 'Roboto'; // O 'Lato', 'Montserrat'
+const FONT_FAMILY_BODY = 'Roboto';   // O 'Open Sans'
+
+/**
+ * Función principal para generar la presentación.
+ */
+function crearPresentacionCalendarioCultural() {
+  let presentation; // Declarar fuera del try para poder usarla en el log de éxito
+  try {
+    presentation = SlidesApp.create(PRESENTATION_TITLE);
+    Logger.log(`Presentación creada con ID: ${presentation.getId()}`);
+
+    // --- Diapositivas ---
+    crearDiapositivaTitulo(presentation);
+    crearDiapositivaIntroduccion(presentation);
+    crearDiapositivaSolucion(presentation);
+    crearDiapositivaObjetivos(presentation);
+    crearDiapositivaFuncionalidadesCalendario(presentation);
+    crearDiapositivaFuncionalidadesCronograma(presentation);
+    crearDiapositivaBeneficios(presentation);
+    crearDiapositivaTecnologia(presentation);
+    crearDiapositivaFlujoTrabajo(presentation);
+    crearDiapositivaProximosPasos(presentation);
+    crearDiapositivaConclusion(presentation);
+    crearDiapositivaAgradecimiento(presentation);
+
+    Logger.log("Todas las diapositivas han sido añadidas.");
+    const message = `La presentación "${PRESENTATION_TITLE}" ha sido creada con éxito. Puedes encontrarla en tu Google Drive (ID: ${presentation.getId()}).`;
+    Logger.log(message);
+    Browser.msgBox("Presentación Generada", message, Browser.Buttons.OK);
+
+  } catch (error) {
+    Logger.log(`Error al generar la presentación: ${error.toString()}\nStack: ${error.stack || 'No stack disponible'}`);
+    Browser.msgBox("Error", `Ocurrió un error al generar la presentación: ${error.message}`, Browser.Buttons.OK);
+  }
+}
+
+/**
+ * Aplica estilo básico a un cuadro de texto.
+ * @param {Shape} shape El objeto Shape que contiene el texto.
+ * @param {string} text El texto a insertar.
+ * @param {number} fontSize Tamaño de la fuente.
+ * @param {string} colorHex Color del texto en formato hexadecimal.
+ * @param {string} fontFamily Familia de la fuente.
+ * @param {boolean} bold Si el texto es negrita.
+ * @param {ParagraphAlignment} alignment Alineación del párrafo.
+ */
+function aplicarEstiloTexto(shape, text, fontSize, colorHex, fontFamily, bold = false, alignment = SlidesApp.ParagraphAlignment.START) {
+  const textRange = shape.getText();
+  textRange.setText(text);
+  const textStyle = textRange.getTextStyle();
+  textStyle.setFontSize(fontSize);
+  textStyle.setForegroundColor(colorHex);
+  textStyle.setFontFamily(fontFamily);
+  textStyle.setBold(bold);
+  
+  textRange.getParagraphs().forEach(paragraph => {
+    paragraph.setParagraphAlignment(alignment);
+  });
+}
+
+/**
+ * Inserta un cuadro de texto con título.
+ * @param {Slide} slide La diapositiva donde se insertará el título.
+ * @param {string} titleText El texto del título.
+ */
+function insertarTitulo(slide, titleText) {
+  const titleShape = slide.insertTextBox(titleText, 50, 30, 620, 60); // x, y, width, height
+  aplicarEstiloTexto(titleShape, titleText, 32, COLORS.PRIMARY, FONT_FAMILY_TITLES, true, SlidesApp.ParagraphAlignment.CENTER);
+  return titleShape;
+}
+
+/**
+ * Inserta un cuadro de texto para cuerpo de contenido.
+ * @param {Slide} slide La diapositiva.
+ * @param {string} bodyText El texto del cuerpo (usar \n para saltos de línea, \t para viñetas).
+ * @param {number} yPos Posición Y del cuadro de texto.
+ * @param {number} height Altura del cuadro de texto.
+ */
+function insertarCuerpoTexto(slide, bodyText, yPos = 120, height = 350, xPos = 50, width = 620) {
+ const bodyShape = slide.insertTextBox(bodyText, xPos, yPos, width, height);
+  const textRange = bodyShape.getText();
+  textRange.setText(bodyText);
+  
+  textRange.getParagraphs().forEach(paragraph => {
+    const paragraphStyle = paragraph.getRange().getTextStyle();
+    paragraphStyle.setFontSize(16);
+    paragraphStyle.setFontFamily(FONT_FAMILY_BODY);
+    paragraphStyle.setForegroundColor(COLORS.TEXT_DARK);
+    
+    // Aplicar estilo de viñeta si el párrafo comienza con un marcador común
+    const paragraphText = paragraph.getRange().asString();
+    if (paragraphText.trim().startsWith('•') || paragraphText.trim().startsWith('-') || paragraphText.trim().startsWith('*')) {
+      // Apps Script no tiene un método directo .setBullet() complejo como en la UI.
+      // Se usa el carácter de viñeta directamente en el texto.
+    }
+  });
+  return bodyShape;
+}
+
+/**
+ * Añade un placeholder para imagen.
+ * @param {Slide} slide La diapositiva.
+ * @param {string} note Mensaje para el placeholder.
+ * @param {number} x Posición X.
+ * @param {number} y Posición Y.
+ * @param {number} width Ancho.
+ * @param {number} height Alto.
+ */
+function insertarPlaceholderImagen(slide, note = "Reemplazar con imagen relevante", x = 450, y = 150, width = 220, height = 180) {
+  const shape = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, x, y, width, height);
+  shape.getFill().setSolidFill(COLORS.SECONDARY, 0.1); // Color de relleno semi-transparente
+  shape.getBorder().getLineFill().setSolidFill(COLORS.SECONDARY);
+  shape.getText().setText(note).getTextStyle().setForegroundColor(COLORS.TEXT_DARK).setFontSize(10);
+  shape.getText().getParagraphs()[0].setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
+}
+
+// --- Funciones para crear cada diapositiva ---
+
+function crearDiapositivaTitulo(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_SLIDE;
+  Logger.log(`Intentando usar el layout para Título: ${layoutEnum}`);
+  if (!layoutEnum) {
+      const errorMsg = "Error crítico: SlidesApp.PredefinedLayout.TITLE_SLIDE no se pudo resolver.";
+      Logger.log(errorMsg);
+      throw new Error(errorMsg);
+  }
+  const slide = presentation.appendSlide(layoutEnum); // Esta era la línea 146 aproximadamente
+  slide.getBackground().setSolidFill(COLORS.PRIMARY);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  title.getText().setText(PRESENTATION_TITLE);
+  title.getText().getTextStyle().setFontFamily(FONT_FAMILY_TITLES).setBold(true).setForegroundColor(COLORS.TEXT_LIGHT).setFontSize(44);
+  
+  const subtitle = slide.getPlaceholder(SlidesApp.PlaceholderType.SUBTITLE);
+  subtitle.getText().setText("Innovación y Planificación Estratégica para la Cultura\n"+ new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long' }));
+  subtitle.getText().getTextStyle().setFontFamily(FONT_FAMILY_BODY).setForegroundColor(COLORS.TEXT_LIGHT).setFontSize(24);
+
+  slide.setNotes("Diapositiva de título. Presentar el nombre del proyecto y el propósito general de la presentación.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaIntroduccion(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Introducción: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+  
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "El Desafío en la Gestión Cultural", 30, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "• Dispersión de la información de eventos y conmemoraciones.\n" +
+                  "• Falta de una visión estratégica y unificada para la planificación.\n" +
+                  "• Dificultad en la coordinación del cronograma editorial con eventos culturales.\n" +
+                  "• Oportunidades de sinergia y colaboración interna desaprovechadas.\n" +
+                  "• Necesidad de optimizar recursos y maximizar el impacto.";
+  aplicarEstiloTexto(body.asShape(), content, 18, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+  
+  slide.setNotes("Contextualizar el problema que el proyecto busca resolver. Usar datos o ejemplos si es posible.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaSolucion(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.SECTION_HEADER;
+  Logger.log(`Intentando usar el layout para Solución: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum); 
+  slide.getBackground().setSolidFill(COLORS.SECONDARY);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  title.asShape().getText().setText("Nuestra Solución: El Calendario Estratégico Cultural");
+  title.asShape().getText().getTextStyle().setFontFamily(FONT_FAMILY_TITLES).setBold(true).setForegroundColor(COLORS.TEXT_LIGHT).setFontSize(36);
+
+  const descShape = slide.insertTextBox("Una plataforma integral, inteligente y colaborativa diseñada para el CECAN.", 50, 150, 620, 100);
+  aplicarEstiloTexto(descShape, descShape.getText().asString(), 22, COLORS.TEXT_LIGHT, FONT_FAMILY_BODY, false, SlidesApp.ParagraphAlignment.CENTER);
+  
+  slide.setNotes("Presentar el Calendario Estratégico Cultural como la respuesta a los desafíos planteados.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaObjetivos(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Objetivos: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Objetivos Clave del Proyecto", 30, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "• Optimizar la planificación y gestión de eventos y contenidos culturales.\n" +
+                  "• Mejorar la coordinación y colaboración interna entre áreas del CECAN.\n" +
+                  "• Potenciar la visibilidad, el alcance y el impacto de las actividades culturales.\n" +
+                  "• Proveer una herramienta tecnológica robusta, centralizada y fácil de usar.\n" +
+                  "• Facilitar la toma de decisiones basada en datos y una visión estratégica.";
+  aplicarEstiloTexto(body.asShape(), content, 18, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  slide.setNotes("Detallar los metas específicas que se buscan alcanzar con la implementación del calendario.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaFuncionalidadesCalendario(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_TWO_COLUMNS;
+  Logger.log(`Intentando usar el layout para Funcionalidades Calendario: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Funcionalidades: Calendario Cultural", 28, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+  
+  const body1 = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY, 0); 
+  const content1 = "• Registro Detallado:\n" +
+                   "\t- ID, Mes, Día, Fecha, Evento.\n" +
+                   "\t- Alcance, Relevancia, Sugerencias.\n" +
+                   "• Vinculación Estratégica:\n" +
+                   "\t- Proyectos CECAN asociados.\n" +
+                   "• Seguimiento de Estados:\n" +
+                   "\t- Estado de Contenido (Pendiente, En Proceso, Listo, Publicado).\n" +
+                   "\t- Estado de Verificación.";
+  aplicarEstiloTexto(body1.asShape(), content1, 15, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  const body2 = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY, 1); 
+  const content2 = "• Automatización y Eficiencia:\n" +
+                   "\t- Generación automática de nuevos IDs.\n" +
+                   "\t- Ordenamiento automático por fecha.\n" +
+                   "• Formato y Validación:\n" +
+                   "\t- Formato condicional para estados.\n" +
+                   "\t- Validación de datos en campos clave.";
+  aplicarEstiloTexto(body2.asShape(), content2, 15, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+  
+  slide.setNotes("Explicar las características específicas de la hoja 'Calendario Cultural CECAN'. Considerar mostrar un mockup o captura de pantalla.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaFuncionalidadesCronograma(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_TWO_COLUMNS;
+  Logger.log(`Intentando usar el layout para Funcionalidades Cronograma: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Funcionalidades: Cronograma Editorial", 28, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+  
+  const body1 = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY, 0);
+  const content1 = "• Integración con Calendario:\n" +
+                   "\t- Selección de 'ID Evento' (opcional) del Calendario Cultural.\n" +
+                   "\t- Arrastre automático de Fecha y Nombre del Evento.\n" +
+                   "• Planificación Detallada:\n" +
+                   "\t- Fecha y Hora de Publicación.\n" +
+                   "\t- Plataforma, Texto/Contenido, Visual.";
+  aplicarEstiloTexto(body1.asShape(), content1, 15, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  const body2 = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY, 1);
+  const content2 = "• Seguimiento y Sincronización:\n" +
+                   "\t- Estado de Publicación (Pendiente, Programado, Publicado, etc.).\n" +
+                   "\t- Sincronización del estado 'Publicado' al Calendario Cultural.\n" +
+                   "• Creación Rápida y Validaciones:\n" +
+                   "\t- Entrada base desde el Calendario.\n" +
+                   "\t- Validación de coherencia de fechas.";
+  aplicarEstiloTexto(body2.asShape(), content2, 15, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  slide.setNotes("Detallar las características de la hoja 'Cronograma Editorial' y su interacción con el calendario. Mostrar mockup si es posible.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaBeneficios(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Beneficios: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+  
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Impacto y Beneficios Clave", 30, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "• **Eficiencia Operativa:** Reducción significativa de tiempos en planificación y gestión.\n" +
+                  "• **Visión Estratégica:** Consolidación de información para una perspectiva clara y alineada.\n" +
+                  "• **Colaboración Mejorada:** Flujos de trabajo optimizados y sinergia entre equipos.\n" +
+                  "• **Mayor Alcance:** Potenciación de la difusión y el impacto de la agenda cultural.\n" +
+                  "• **Toma de Decisiones Informada:** Acceso a datos centralizados para análisis y reportes.\n" +
+                  "• **Profesionalización:** Herramienta robusta que estandariza procesos clave.";
+  aplicarEstiloTexto(body.asShape(), content, 17, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  slide.setNotes("Enfocarse en el valor agregado que el proyecto aporta al CECAN y sus stakeholders.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+
+function crearDiapositivaTecnologia(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Tecnología: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Impulsado por Tecnología Flexible y Colaborativa", 26, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "• **Google Workspace:**\n" +
+                  "\t- Google Sheets: Como base de datos robusta y flexible.\n" +
+                  "\t- Google Slides: Para reportes y presentaciones (como esta).\n" +
+                  "\t- Google Drive: Para almacenamiento y acceso centralizado.\n" +
+                  "• **Google Apps Script:**\n" +
+                  "\t- Automatización de tareas (IDs, ordenamiento, sincronización).\n" +
+                  "\t- Creación de menús personalizados e interfaz de usuario mejorada.\n" +
+                  "\t- Validación de datos y lógica de negocio implementada.\n" +
+                  "• **Beneficios de la Plataforma:**\n" +
+                  "\t- Accesibilidad desde cualquier lugar y dispositivo.\n" +
+                  "\t- Colaboración en tiempo real.\n" +
+                  "\t- Seguridad y gestión de permisos de Google.\n" +
+                  "\t- Bajo costo de implementación y mantenimiento (usa infraestructura existente).";
+  aplicarEstiloTexto(body.asShape(), content, 16, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+  
+  insertarPlaceholderImagen(slide, "Logos: Sheets, Apps Script", 480, 350, 180, 80);
+
+  slide.setNotes("Destacar la elección tecnológica y sus ventajas, especialmente la integración y automatización que provee Apps Script.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaFlujoTrabajo(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Flujo de Trabajo: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Un Flujo de Trabajo Intuitivo y Eficaz", 28, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "1. **Registro Inicial:** Evento/conmemoración se añade al Calendario Cultural.\n" +
+                  "2. **Ideación:** Se generan sugerencias de contenido y se vinculan proyectos.\n" +
+                  "3. **Planificación Editorial:** Se crea una entrada en el Cronograma (manual o desde Calendario).\n" +
+                  "\t  Se define plataforma, fecha/hora, responsable (opcional).\n" +
+                  "4. **Creación y Desarrollo:** Se elaboran los borradores de texto y visuales.\n" +
+                  "5. **Programación/Publicación:** El contenido se programa o publica; estado se actualiza.\n" +
+                  "6. **Sincronización:** Si todas las tareas de un evento en Cronograma están 'Publicadas', el Calendario Cultural refleja el evento como 'Publicado'.\n" +
+                  "7. **Seguimiento y Archivo:** (Funcionalidad futura para archivo).";
+  aplicarEstiloTexto(body.asShape(), content, 15, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  insertarPlaceholderImagen(slide, "Diagrama de Flujo", 480, 350, 180, 80);
+
+  slide.setNotes("Ilustrar cómo los usuarios interactuarán con la herramienta en su día a día. Un diagrama visual sería ideal aquí.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaProximosPasos(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.TITLE_AND_BODY;
+  Logger.log(`Intentando usar el layout para Próximos Pasos: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.BACKGROUND_LIGHT);
+
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  aplicarEstiloTexto(title.asShape(), "Visión a Futuro: Próximos Pasos", 30, COLORS.PRIMARY, FONT_FAMILY_TITLES, true);
+
+  const body = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);
+  const content = "• **Fase 1 (Actual):** Implementación y adopción del Calendario y Cronograma base.\n" +
+                  "• **Fase 2:**\n" +
+                  "\t- Desarrollo y lanzamiento del Dashboard de Resumen y Alertas.\n" +
+                  "\t- Implementación de la funcionalidad 'Archivar Eventos Pasados'.\n" +
+                  "\t- Configuración de notificaciones básicas (ej. recordatorios).\n" +
+                  "• **Fase 3:**\n" +
+                  "\t- Recopilación de feedback y optimizaciones continuas.\n" +
+                  "\t- Exploración de integraciones adicionales (ej. Google Calendar, redes sociales).\n" +
+                  "\t- Capacitación avanzada y desarrollo de manuales de usuario detallados.";
+  aplicarEstiloTexto(body.asShape(), content, 17, COLORS.TEXT_DARK, FONT_FAMILY_BODY);
+
+  slide.setNotes("Mostrar la hoja de ruta del proyecto, incluyendo funcionalidades futuras y mejoras planeadas.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaConclusion(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.SECTION_HEADER;
+  Logger.log(`Intentando usar el layout para Conclusión: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum);
+  slide.getBackground().setSolidFill(COLORS.ACCENT);
+  
+  const title = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);
+  title.asShape().getText().setText("Transformando la Gestión Cultural en CECAN");
+  title.asShape().getText().getTextStyle().setFontFamily(FONT_FAMILY_TITLES).setBold(true).setForegroundColor(COLORS.TEXT_DARK).setFontSize(34);
+
+  const descShape = slide.insertTextBox("El Calendario Estratégico Cultural es más que una herramienta;\nes un paso hacia una gestión más ágil, colaborativa e impactante.\n\n¿Preguntas?", 50, 180, 620, 150);
+  aplicarEstiloTexto(descShape, descShape.getText().asString(), 20, COLORS.TEXT_DARK, FONT_FAMILY_BODY, false, SlidesApp.ParagraphAlignment.CENTER);
+
+  slide.setNotes("Resumir el mensaje principal y abrir el espacio para preguntas.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
+
+function crearDiapositivaAgradecimiento(presentation) {
+  const layoutEnum = SlidesApp.PredefinedLayout.BLANK_SLIDE;
+  Logger.log(`Intentando usar el layout para Agradecimiento: ${layoutEnum}`);
+  const slide = presentation.appendSlide(layoutEnum); 
+  slide.getBackground().setSolidFill(COLORS.PRIMARY);
+
+  const thanksText = slide.insertTextBox("¡Gracias!", 50, 200, 620, 100);
+  aplicarEstiloTexto(thanksText, "¡Gracias!", 60, COLORS.TEXT_LIGHT, FONT_FAMILY_TITLES, true, SlidesApp.ParagraphAlignment.CENTER);
+  
+  const contactText = slide.insertTextBox("CECAN | Contacto: [email o sitio web del CECAN]", 50, 300, 620, 50);
+  aplicarEstiloTexto(contactText, "CECAN | Contacto: [email o sitio web del CECAN]", 18, COLORS.TEXT_LIGHT, FONT_FAMILY_BODY, false, SlidesApp.ParagraphAlignment.CENTER);
+
+  slide.setNotes("Agradecer a la audiencia. Incluir información de contacto o próximos pasos si es relevante.");
+  slide.setTransition(SlidesApp.SlideTransitionType.FADE, 500);
+}
