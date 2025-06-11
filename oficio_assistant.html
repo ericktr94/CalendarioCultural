@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Estratégico de Oficios con IA ✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+        }
+        textarea::placeholder { /* Styles for textarea placeholder */
+            color: #475569; /* slate-600 */
+            font-style: italic;
+            font-size: 0.9em;
+            transition: color 0.3s;
+        }
+        textarea:focus::placeholder {
+            color: #334155; /* slate-700 */
+        }
+        #output-content { /* Styles for the output content area */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            line-height: 1.7;
+            color: #cbd5e1; /* slate-300 */
+        }
+        @keyframes spin { /* Spinner animation */
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        .modal-backdrop { /* Modal backdrop transition */
+            transition: opacity 0.3s ease;
+        }
+        .modal-content { /* Modal content transition */
+            transition: all 0.3s ease;
+        }
+        .glow-on-hover:hover { /* Glow effect for buttons on hover */
+            box-shadow: 0 0 15px 2px rgba(34, 211, 238, 0.2);
+        }
+        /* Style for validation error */
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+        .focus\:ring-red-500:focus {
+            --tw-ring-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="text-slate-300">
+
+    <header class="text-center mb-8 sm:mb-12 pt-8 sm:pt-12">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500">
+            Asistente Estratégico de Oficios con IA ✨
+        </h1>
+        <p class="text-slate-400 mt-3 text-base sm:text-lg max-w-xl mx-auto">
+            Completa los campos y deja que la IA te ayude a redactar un oficio impactante y profesional.
+        </p>
+    </header>
+
+    <main class="container mx-auto px-4 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+
+            <!-- Columna Izquierda: Entradas del Usuario -->
+            <div class="bg-slate-800 p-5 sm:p-7 rounded-xl shadow-2xl space-y-5 border border-slate-700">
+                <h2 class="text-xl sm:text-2xl font-semibold text-cyan-400 border-b border-slate-700 pb-3 mb-5">1. Define el Contenido del Oficio</h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label for="destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Destinatario (Nombre)</label>
+                        <input type="text" id="destinatario" placeholder="Ej: Dr. Elena Ríos Pérez" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                    </div>
+                    <div>
+                        <label for="cargo_destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Cargo del Destinatario</label>
+                        <input type="text" id="cargo_destinatario" placeholder="Ej: Directora General de Investigación" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                    </div>
+                </div>
+                <div>
+                    <label for="institucion_destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Institución del Destinatario</label>
+                    <input type="text" id="institucion_destinatario" placeholder="Ej: Universidad Nacional de Ciencia Avanzada" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                </div>
+
+                <hr class="border-slate-700 my-5">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label for="remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Remitente (Tu Nombre)</label>
+                        <input type="text" id="remitente" placeholder="Ej: Luis Morales Vargas" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                    </div>
+                    <div>
+                        <label for="cargo_remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Tu Cargo</label>
+                        <input type="text" id="cargo_remitente" placeholder="Ej: Coordinador de Proyectos Estratégicos" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                    </div>
+                </div>
+                 <div>
+                    <label for="departamento_remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Tu Departamento/Área (Opcional)</label>
+                    <input type="text" id="departamento_remitente" placeholder="Ej: Departamento de Innovación y Desarrollo Tecnológico" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                </div>
+
+                <hr class="border-slate-700 my-5">
+
+                <div>
+                    <label for="asunto" class="block text-sm font-medium text-slate-300 mb-1.5">Asunto Principal del Oficio</label>
+                    <div class="flex space-x-2.5">
+                        <input type="text" id="asunto" placeholder="Ej: Solicitud de colaboración interinstitucional para proyecto 'InnovAcción Educativa'" class="form-input flex-grow w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                        <button id="subject-assistant-btn" title="Ayuda IA: Sugerir/Mejorar Asunto" class="p-2.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-white transition glow-on-hover shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 7a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 7zm0 4a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 11zm-.996 3.004a.75.75 0 01.75-.75H10a.75.75 0 010 1.5H6.754a.75.75 0 01-.75-.75zM4.5 2A2.5 2.5 0 002 4.5v11A2.5 2.5 0 004.5 18h11a2.5 2.5 0 002.5-2.5v-11A2.5 2.5 0 0015.5 2h-11z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="tono" class="block text-sm font-medium text-slate-300 mb-1.5">Tono del Oficio</label>
+                    <div class="flex space-x-2.5">
+                        <select id="tono" class="form-select flex-grow w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                            <option value="formal">Formal y Respetuoso</option>
+                            <option value="persuasivo">Persuasivo y Convincente</option>
+                            <option value="informativo">Claro y Conciso (Informativo)</option>
+                            <option value="colaborativo">Abierto a la Colaboración</option>
+                            <option value="urgente">Urgente (usar con cautela)</option>
+                            <option value="agradecimiento">Agradecimiento Cordial</option>
+                            <option value="solicitud">Solicitud Amable pero Firme</option>
+                        </select>
+                        <button id="tone-assistant-btn" title="Ayuda IA: ¿Qué tono usar?" class="p-2.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-white transition glow-on-hover shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.502l-2.5 5a1 1 0 001.734 1L10 11.118l1.633 1.384a1 1 0 001.734-1l-2.5-5A1 1 0 0010 7zm0 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="cuerpo" class="block text-sm font-medium text-slate-300 mb-1.5">Mensaje Principal / Cuerpo del Oficio</label>
+                    <textarea id="cuerpo" rows="8" placeholder="Describe detalladamente el propósito central del oficio: qué quieres comunicar, solicitar, proponer, etc. Incluye antecedentes, justificaciones y cualquier dato o punto clave que la IA deba desarrollar. Cuanto más específico seas, mejor será el resultado." class="form-textarea w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm"></textarea>
+                </div>
+
+                <div class="space-y-3 pt-3">
+                    <button id="improve-text-btn" type="button" title="IA revisará y mejorará la claridad, gramática y estilo del Mensaje Principal." class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white font-medium py-2.5 px-4 rounded-lg transition-transform hover:scale-[1.02] glow-on-hover shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7.172l2.586-2.586a2 2 0 012.828 0L13 7.172V12H5zM3 17a1 1 0 01-1-1V4a1 1 0 011-1h9a1 1 0 110 2H4v11h9a1 1 0 110 2H3z" /></svg>
+                        <span>Mejorar Redacción (IA)</span>
+                    </button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="anticipate-btn" type="button" title="IA analizará posibles reacciones del destinatario y te dará ideas." class="w-full flex items-center justify-center space-x-2 bg-purple-700 hover:bg-purple-600 text-white font-medium py-2.5 px-4 rounded-lg transition-transform hover:scale-[1.02] glow-on-hover shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.75a.75.75 0 00.75-.75V9.31l.924 1.616a.75.75 0 101.299-.746l-1.916-3.353a.75.75 0 00-1.312 0L7.03 10.18a.75.75 0 101.3.746L9.25 9.31v4.19a.75.75 0 00.75.75zM9 6a1 1 0 112 0 1 1 0 01-2 0z" clip-rule="evenodd" /></svg>
+                            <span>Anticipar Reacciones (IA)</span>
+                        </button>
+                        <button id="suggest-docs-btn" type="button" title="IA sugerirá documentos o información que podrías anexar." class="w-full flex items-center justify-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white font-medium py-2.5 px-4 rounded-lg transition-transform hover:scale-[1.02] glow-on-hover shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 4A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16h9a1.5 1.5 0 001.5-1.5V8.828a1.5 1.5 0 00-.44-1.06L12.232 4.44A1.5 1.5 0 0011.172 4H5.5zM6 5.5a.5.5 0 01.5-.5h4.172a.5.5 0 01.353.146l3.328 3.328a.5.5 0 01.147.354V14.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-9zM8.75 10a.75.75 0 000 1.5h2.5a.75.75 0 000-1.5h-2.5z" /></svg>
+                           <span>Sugerir Anexos (IA)</span>
+                        </button>
+                    </div>
+                </div>
+                 <button id="generate-btn" type="button" class="w-full mt-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-4 rounded-lg text-lg transition-all hover:scale-[1.02] focus:ring-4 focus:ring-emerald-400 focus:ring-opacity-50 flex items-center justify-center space-x-2.5 shadow-lg hover:shadow-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-1.25a6.75 6.75 0 100-13.5 6.75 6.75 0 000 13.5zM7.25 9a.75.75 0 000 1.5h5.5a.75.75 0 000-1.5h-5.5z" clip-rule="evenodd" /><path d="M5.533 12.023a.75.75 0 011.06 0l1.768 1.768a.75.75 0 01-1.06 1.06l-1.768-1.768a.75.75 0 010-1.06zM12.349 6.083a.75.75 0 011.06 0l1.06 1.06a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zM12.349 12.023a.75.75 0 010 1.06l-1.768 1.768a.75.75 0 01-1.06-1.06l1.768-1.768a.75.75 0 011.06 0zM7.593 6.083a.75.75 0 010 1.06l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 0z" /></svg>
+                    <span>Generar Oficio Completo con IA</span>
+                </button>
+            </div>
+
+            <!-- Columna Derecha: Salida del Oficio -->
+            <div class="bg-slate-800 p-5 sm:p-7 rounded-xl shadow-2xl space-y-5 border border-slate-700 h-full flex flex-col">
+                <h2 class="text-xl sm:text-2xl font-semibold text-cyan-400 border-b border-slate-700 pb-3 mb-2">2. Documento Final Generado</h2>
+                <div id="output-area" class="h-full flex flex-col flex-grow">
+                    <div class="flex-grow relative">
+                        <textarea id="output-content" readonly class="custom-scrollbar w-full h-full bg-slate-700/30 border-slate-600 rounded-lg p-3.5 text-slate-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition resize-none shadow-inner" placeholder="El oficio generado por la IA aparecerá aquí..."></textarea>
+                        <div id="spinner-overlay" class="absolute inset-0 bg-slate-700/50 backdrop-blur-sm flex items-center justify-center rounded-lg hidden">
+                            <svg class="spinner h-10 w-10 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                        <button id="copy-btn" title="Copiar texto del oficio" class="flex-1 flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-4 rounded-lg transition-transform hover:scale-[1.02] glow-on-hover shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H7zm0 12V4h8v10H7zM3 6a2 2 0 012-2h2v2H5v8h2v2H5a2 2 0 01-2-2V6z" /></svg>
+                            <span>Copiar Texto</span>
+                        </button>
+                        <button id="summarize-btn" title="IA creará un resumen ejecutivo del oficio" class="flex-1 flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-transform hover:scale-[1.02] glow-on-hover shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v10H5V5zm2 2h6v2H7V7zm0 4h6v2H7v-2z" /></svg>
+                            <span>✨ Crear Resumen Ejecutivo (IA)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Notificación -->
+    <div id="notification-modal" role="alert" aria-live="assertive" aria-atomic="true" class="modal-backdrop fixed inset-0 flex items-center justify-center p-4 hidden z-50 opacity-0">
+        <div class="modal-content bg-slate-800 border border-slate-700/80 rounded-xl shadow-2xl w-full max-w-md p-6 text-center opacity-0 scale-95">
+            <div class="flex items-center justify-center mb-4">
+                <svg id="modal-icon-success" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-400 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <svg id="modal-icon-error" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-400 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                <svg id="modal-icon-info" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-sky-400 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <h3 id="notification-title" class="text-xl font-semibold mb-2 text-slate-100">Notificación</h3>
+            <p id="notification-message" class="text-slate-300 mb-6 text-sm sm:text-base"></p>
+            <button id="notification-close-btn" class="bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-white font-medium py-2.5 px-8 rounded-lg transition-colors focus:ring-4 focus:ring-cyan-400 focus:ring-opacity-50 glow-on-hover">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; // IMPORTANT: Replace with your actual Gemini API Key
+
+        // --- DOM Element References ---
+        const elements = {
+            destinatario: document.getElementById('destinatario'),
+            cargoDestinatario: document.getElementById('cargo_destinatario'),
+            institucionDestinatario: document.getElementById('institucion_destinatario'),
+            remitente: document.getElementById('remitente'),
+            cargoRemitente: document.getElementById('cargo_remitente'),
+            departamentoRemitente: document.getElementById('departamento_remitente'),
+            asunto: document.getElementById('asunto'),
+            tono: document.getElementById('tono'),
+            cuerpo: document.getElementById('cuerpo'),
+            outputContent: document.getElementById('output-content'),
+            spinnerOverlay: document.getElementById('spinner-overlay'),
+            // Buttons
+            subjectAssistantBtn: document.getElementById('subject-assistant-btn'),
+            toneAssistantBtn: document.getElementById('tone-assistant-btn'),
+            improveTextBtn: document.getElementById('improve-text-btn'),
+            anticipateBtn: document.getElementById('anticipate-btn'),
+            suggestDocsBtn: document.getElementById('suggest-docs-btn'),
+            generateBtn: document.getElementById('generate-btn'),
+            copyBtn: document.getElementById('copy-btn'),
+            summarizeBtn: document.getElementById('summarize-btn'),
+            // Modal
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseBtn: document.getElementById('notification-close-btn'),
+            modalIconSuccess: document.getElementById('modal-icon-success'),
+            modalIconError: document.getElementById('modal-icon-error'),
+            modalIconInfo: document.getElementById('modal-icon-info'),
+            modalContent: document.querySelector('#notification-modal .modal-content')
+        };
+
+        // --- Helper Functions ---
+        function showModal(title, message, type = 'info') {
+            elements.notificationTitle.textContent = title;
+            elements.notificationMessage.innerHTML = message;
+
+            elements.modalIconSuccess.classList.add('hidden');
+            elements.modalIconError.classList.add('hidden');
+            elements.modalIconInfo.classList.add('hidden');
+
+            if (type === 'success') elements.modalIconSuccess.classList.remove('hidden');
+            else if (type === 'error') elements.modalIconError.classList.remove('hidden');
+            else elements.modalIconInfo.classList.remove('hidden');
+
+            elements.notificationModal.classList.remove('hidden');
+            requestAnimationFrame(() => { // Ensure 'hidden' is removed before starting transition
+                elements.notificationModal.classList.remove('opacity-0');
+                elements.modalContent.classList.remove('opacity-0', 'scale-95');
+            });
+        }
+
+        function closeModal() {
+            elements.notificationModal.classList.add('opacity-0');
+            elements.modalContent.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                elements.notificationModal.classList.add('hidden');
+            }, 300);
+        }
+
+        elements.notificationCloseBtn.addEventListener('click', closeModal);
+        elements.notificationModal.addEventListener('click', (event) => {
+            if (event.target === elements.notificationModal) closeModal();
+        });
+         document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !elements.notificationModal.classList.contains('hidden')) closeModal();
+        });
+
+        function validateInputs(fieldsToValidate) {
+            let allValid = true;
+            fieldsToValidate.forEach(id => {
+                const field = elements[id];
+                if (field && !field.value.trim()) {
+                    field.classList.add('border-red-500', 'focus:ring-red-500');
+                    field.classList.remove('focus:ring-cyan-500', 'focus:border-cyan-500');
+                    allValid = false;
+                } else if (field) {
+                    field.classList.remove('border-red-500', 'focus:ring-red-500');
+                    field.classList.add('focus:ring-cyan-500', 'focus:border-cyan-500');
+                }
+            });
+            if (!allValid) {
+                showModal("Campos Incompletos", "Por favor, completa todos los campos marcados en rojo. Son esenciales para generar el oficio.", 'error');
+            }
+            return allValid;
+        }
+
+        function renderDocument(text) {
+            elements.outputContent.value = text;
+            elements.outputContent.scrollTop = 0; // Scroll to top
+            elements.spinnerOverlay.classList.add('hidden');
+        }
+
+        async function callGemini(prompt, actionDescription = "esta acción") {
+            if (GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
+                showModal(
+                    "Configuración Requerida",
+                    "Por favor, reemplaza <code>YOUR_API_KEY_HERE</code> con tu clave API de Google Gemini en el script (cerca de la línea 213) para activar las funciones de IA.<br><br>Puedes obtener una clave en <a href='https://aistudio.google.com/app/apikey' target='_blank' class='text-cyan-400 underline hover:text-cyan-300'>Google AI Studio</a>.",
+                    'error'
+                );
+                return null;
+            }
+
+            showModal("Procesando IA...", `La IA está trabajando en ${actionDescription}. Esto puede tomar unos segundos...`, 'info');
+            elements.spinnerOverlay.classList.remove('hidden'); // Show spinner on output area
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.6, // Slightly lower for more predictable formal text
+                            topK: 20,
+                            topP: 0.85,
+                            maxOutputTokens: 2048,
+                        },
+                        safetySettings: [ // Adjusted for potentially sensitive official language
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                        ]
+                    })
+                });
+
+                closeModal(); // Close the "Procesando..." modal after fetch attempt
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error en API de Gemini:', errorData);
+                    let userMessage = `Error ${response.status} al contactar la IA.`;
+                     if (errorData.error && errorData.error.message) {
+                        userMessage += `<br><small>Detalle: ${errorData.error.message.substring(0, 250)}</small>`;
+                        if(response.status === 400 && errorData.error.message.includes("API key not valid")) {
+                            userMessage = "Error: La Clave API de Gemini no es válida. Verifica que sea correcta y esté activa.";
+                        } else if (response.status === 429) {
+                             userMessage = "Error: Se ha excedido la cuota de la API de Gemini. Por favor, inténtalo más tarde o revisa tu plan.";
+                        }
+                    }
+                    showModal("Error de IA", userMessage, 'error');
+                    elements.spinnerOverlay.classList.add('hidden');
+                    return null;
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    let denialReason = "La IA no pudo generar una respuesta satisfactoria.";
+                    if (result.promptFeedback && result.promptFeedback.blockReason) {
+                        denialReason = `La solicitud fue bloqueada por motivos de seguridad: ${result.promptFeedback.blockReason}. Intenta reformular tu petición.`;
+                         if (result.promptFeedback.safetyRatings && result.promptFeedback.safetyRatings.length > 0) {
+                            const specificReasons = result.promptFeedback.safetyRatings
+                                .filter(r => r.blocked)
+                                .map(r => `${r.category.replace('HARM_CATEGORY_', '')}: ${r.probability}`)
+                                .join(', ');
+                            if (specificReasons) denialReason += ` Detalles: ${specificReasons}.`;
+                        }
+                    } else if (result.candidates && result.candidates[0] && result.candidates[0].finishReason !== "STOP") {
+                         denialReason = `La IA no pudo completar la generación. Razón: ${result.candidates[0].finishReason}. Considera simplificar o acortar tu solicitud.`;
+                    }
+                    showModal("Respuesta de IA Incompleta", denialReason, 'error');
+                    elements.spinnerOverlay.classList.add('hidden');
+                    return null;
+                }
+            } catch (error) {
+                closeModal();
+                console.error('Error al llamar a Gemini:', error);
+                showModal("Error de Conexión", `No se pudo conectar con el servicio de IA. Verifica tu conexión a internet. <br><small>(${error.message})</small>`, 'error');
+                elements.spinnerOverlay.classList.add('hidden');
+                return null;
+            }
+        }
+
+        async function safeAction(buttonElement, actionFunction, loadingText = "Procesando...", successMessage = null, requiresValidation = false, validationFields = []) {
+            if (requiresValidation && !validateInputs(validationFields)) {
+                return; // Stop if validation fails
+            }
+
+            const originalContent = buttonElement.innerHTML;
+            const originalTitle = buttonElement.title;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<svg class="spinner -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ${loadingText}`;
+            buttonElement.title = loadingText;
+
+            try {
+                const result = await actionFunction(); // Action function might return a value or handle its own modals
+                if (successMessage && result) { // Only show generic success if action didn't show its own and returned truthy
+                    showModal("Acción Completada", successMessage, "success");
+                }
+            } catch (error) {
+                console.error("Error en safeAction:", error);
+                showModal("Error Inesperado", "Ocurrió un error durante la acción. Revisa la consola para más detalles.", "error");
+            } finally {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalContent;
+                buttonElement.title = originalTitle;
+                if (elements.spinnerOverlay && !elements.generateBtn.disabled) { // Hide main spinner if generateBtn is enabled
+                     elements.spinnerOverlay.classList.add('hidden');
+                }
+            }
+        }
+
+        const formFieldIds = ['destinatario', 'cargoDestinatario', 'institucionDestinatario', 'remitente', 'cargoRemitente', 'asunto', 'cuerpo'];
+        const allFormFields = [...formFieldIds.map(id => elements[id]), elements.departamentoRemitente, elements.tono, elements.outputContent];
+
+        function saveDraft() {
+            const draft = {
+                destinatario: elements.destinatario.value,
+                cargoDestinatario: elements.cargoDestinatario.value,
+                institucionDestinatario: elements.institucionDestinatario.value,
+                remitente: elements.remitente.value,
+                cargoRemitente: elements.cargoRemitente.value,
+                departamentoRemitente: elements.departamentoRemitente.value,
+                asunto: elements.asunto.value,
+                tono: elements.tono.value,
+                cuerpo: elements.cuerpo.value,
+                outputContent: elements.outputContent.value,
+            };
+            localStorage.setItem('oficioDraft', JSON.stringify(draft));
+        }
+
+        function loadDraft() {
+            const draftString = localStorage.getItem('oficioDraft');
+            if (draftString) {
+                const draft = JSON.parse(draftString);
+                elements.destinatario.value = draft.destinatario || '';
+                elements.cargoDestinatario.value = draft.cargoDestinatario || '';
+                elements.institucionDestinatario.value = draft.institucionDestinatario || '';
+                elements.remitente.value = draft.remitente || '';
+                elements.cargoRemitente.value = draft.cargoRemitente || '';
+                elements.departamentoRemitente.value = draft.departamentoRemitente || '';
+                elements.asunto.value = draft.asunto || '';
+                elements.tono.value = draft.tono || 'formal';
+                elements.cuerpo.value = draft.cuerpo || '';
+                elements.outputContent.value = draft.outputContent || '';
+                 if(Object.values(draft).some(val => val && val.length > 0)) {
+                    showModal("Borrador Cargado", "Se ha cargado el último borrador guardado automáticamente.", "success");
+                }
+            }
+        }
+
+        allFormFields.forEach(input => {
+            if (input) input.addEventListener('input', saveDraft);
+        });
+        window.addEventListener('load', loadDraft);
+
+        elements.subjectAssistantBtn.addEventListener('click', () => {
+            safeAction(elements.subjectAssistantBtn, async () => {
+                if (!validateInputs(['cuerpo'])) return;
+                const currentAsunto = elements.asunto.value;
+                const cuerpoMensaje = elements.cuerpo.value;
+                const prompt = `Basado en el siguiente cuerpo de un oficio, sugiere 3 opciones de "Asunto" breves, claras y profesionales. Si ya existe un asunto, mejóralo o da alternativas.
+                Cuerpo del oficio: "${cuerpoMensaje}"
+                ${currentAsunto ? `Asunto actual (opcional, para mejorar): "${currentAsunto}"` : ""}
+                Devuelve solo las 3 sugerencias, cada una en una nueva línea, sin numeración ni guiones.`;
+                const suggestions = await callGemini(prompt, "sugerir asuntos para el oficio");
+                if (suggestions) {
+                    const suggestionHtml = suggestions.split('\n').filter(s => s.trim() !== '').map(s =>
+                        `<button class="block w-full text-left p-2.5 my-1.5 bg-slate-700 hover:bg-slate-600/80 rounded-lg text-slate-200 transition shadow-sm" onclick="elements.asunto.value = this.textContent; closeModal(); elements.asunto.focus(); saveDraft();">${s}</button>`
+                    ).join('');
+                    showModal("Sugerencias de Asunto (IA)",
+                        `<div>${suggestionHtml}</div><p class="mt-3 text-xs text-slate-400">Haz clic en una sugerencia para usarla en el campo 'Asunto'.</p>`,
+                        'info');
+                }
+            }, "Sugiriendo...", null, true, ['cuerpo']);
+        });
+
+        elements.toneAssistantBtn.addEventListener('click', () => {
+            safeAction(elements.toneAssistantBtn, async () => {
+                if (!validateInputs(['cuerpo'])) return;
+                const cuerpoMensaje = elements.cuerpo.value;
+                const prompt = `Analiza el siguiente cuerpo de un oficio y determina cuál sería el tono más adecuado de la siguiente lista: Formal y Respetuoso, Persuasivo y Convincente, Claro y Conciso (Informativo), Abierto a la Colaboración, Urgente, Agradecimiento Cordial, Solicitud Amable pero Firme. Justifica brevemente tu elección (1-2 líneas).
+                Cuerpo del oficio: "${cuerpoMensaje}"
+                Responde con el nombre del tono y la justificación. Ejemplo: "Persuasivo y Convincente: El mensaje busca activamente convencer al destinatario sobre una propuesta específica."`;
+                const suggestion = await callGemini(prompt, "analizar el tono del mensaje");
+                if (suggestion) {
+                     const suggestedTone = suggestion.split(':')[0].trim();
+                     // Attempt to select the suggested tone in the dropdown
+                     const toneOption = Array.from(elements.tono.options).find(opt => opt.textContent.startsWith(suggestedTone));
+                     if (toneOption) elements.tono.value = toneOption.value;
+                    showModal("Sugerencia de Tono (IA)", `<div class="text-left whitespace-pre-line">${suggestion}</div> ${toneOption ? '<p class="mt-2 text-xs text-slate-400">El tono sugerido ha sido seleccionado.</p>' : ''}`, 'info');
+                }
+            }, "Analizando...", null, true, ['cuerpo']);
+        });
+
+        elements.improveTextBtn.addEventListener('click', () => {
+            safeAction(elements.improveTextBtn, async () => {
+                if (!validateInputs(['cuerpo'])) return;
+                const currentCuerpo = elements.cuerpo.value;
+                const prompt = `Revisa y mejora el siguiente texto para el cuerpo de un oficio, manteniendo el significado original pero optimizando la claridad, concisión, gramática, ortografía y profesionalismo, considerando un tono "${elements.tono.value}". Devuelve solo el texto mejorado, sin introducciones ni comentarios adicionales.
+                Texto original: "${currentCuerpo}"`;
+                const improvedText = await callGemini(prompt, "mejorar la redacción del mensaje");
+                if (improvedText) {
+                    elements.cuerpo.value = improvedText.trim();
+                    saveDraft();
+                    showModal("Redacción Mejorada (IA)", "El 'Mensaje Principal / Cuerpo del Oficio' ha sido actualizado con las mejoras de la IA.", 'success');
+                }
+            }, "Mejorando...", null, true, ['cuerpo']);
+        });
+
+        elements.anticipateBtn.addEventListener('click', () => {
+            safeAction(elements.anticipateBtn, async () => {
+                if (!validateInputs(['asunto', 'cuerpo'])) return;
+                const currentCuerpo = elements.cuerpo.value;
+                const currentAsunto = elements.asunto.value;
+                const prompt = `Dado el siguiente asunto y cuerpo de un oficio con un tono "${elements.tono.value}", anticipa 2-3 posibles reacciones clave (positivas, negativas o preguntas específicas) que podría tener el destinatario. Sé conciso y directo.
+                Asunto: "${currentAsunto}"
+                Cuerpo: "${currentCuerpo}"
+                Devuelve cada reacción en una nueva línea, sin numeración ni guiones.`;
+                const reactions = await callGemini(prompt, "anticipar reacciones del destinatario");
+                if (reactions) {
+                    showModal("Posibles Reacciones (IA)", `<div class="text-left whitespace-pre-line text-sm">${reactions}</div>`, 'info');
+                }
+            }, "Anticipando...", null, true, ['asunto', 'cuerpo']);
+        });
+
+        elements.suggestDocsBtn.addEventListener('click', () => {
+            safeAction(elements.suggestDocsBtn, async () => {
+                if (!validateInputs(['asunto', 'cuerpo'])) return;
+                const currentCuerpo = elements.cuerpo.value;
+                const currentAsunto = elements.asunto.value;
+                const prompt = `Basado en el asunto y cuerpo de este oficio con tono "${elements.tono.value}", sugiere 2-3 documentos o tipos de información específicos que podrían ser útiles adjuntar como anexos para dar soporte, claridad o facilitar la acción del destinatario. Si no se necesitan anexos, indícalo justificadamente.
+                Asunto: "${currentAsunto}"
+                Cuerpo: "${currentCuerpo}"
+                Devuelve cada sugerencia en una nueva línea, sin numeración ni guiones. Ejemplo:
+                - Informe de resultados trimestrales (si se mencionan datos específicos)
+                - Propuesta de proyecto detallada (si el oficio es una introducción)`;
+                const suggestions = await callGemini(prompt, "sugerir documentos anexos");
+                if (suggestions) {
+                    showModal("Sugerencias de Anexos (IA)", `<div class="text-left whitespace-pre-line text-sm">${suggestions}</div>`, 'info');
+                }
+            }, "Sugiriendo...", null, true, ['asunto', 'cuerpo']);
+        });
+
+        elements.generateBtn.addEventListener('click', () => {
+            safeAction(elements.generateBtn, async () => {
+                if (!validateInputs(formFieldIds)) return null; // Validate required fields
+
+                const prompt = `
+                Actúa como un experto asistente en redacción de documentos oficiales en español mexicano.
+                Genera un oficio formal completo basado estrictamente en la siguiente información y estructura. Presta especial atención al tono solicitado.
+
+                **Información Proporcionada:**
+                - Nombre del Destinatario: ${elements.destinatario.value}
+                - Cargo del Destinatario: ${elements.cargoDestinatario.value}
+                - Institución del Destinatario: ${elements.institucionDestinatario.value}
+                - Nombre del Remitente: ${elements.remitente.value}
+                - Cargo del Remitente: ${elements.cargoRemitente.value}
+                - Departamento/Área del Remitente: ${elements.departamentoRemitente.value || "No especificado"}
+                - Asunto del Oficio: ${elements.asunto.value}
+                - Tono del Oficio: ${elements.tono.value}
+                - Cuerpo Principal del Mensaje (desarrollar a partir de esto): ${elements.cuerpo.value}
+
+                **Estructura Obligatoria del Oficio:**
+                1.  **Lugar y Fecha:** (Inserta la fecha actual completa. Ej: Ciudad de México, a [DÍA] de [MES EN LETRAS] de [AÑO])
+                2.  **Número de Oficio:** (Utiliza un placeholder profesional y creíble para el contexto mexicano, Ej: DIR.GRAL./0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()} o similar. Si el Depto. Remitente existe y no es "No especificado", úsalo como parte del número, ej: [INICIALES_DEPTO_REM.]/0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()})
+                3.  **Datos del Destinatario (cada uno en nueva línea):**
+                    ${elements.destinatario.value.toUpperCase()}
+                    ${elements.cargoDestinatario.value.toUpperCase()}
+                    ${elements.institucionDestinatario.value.toUpperCase()}
+                    P R E S E N T E .- (Así, en mayúsculas y con guion al final)
+                4.  **Asunto:** ${elements.asunto.value} (Normalmente en negritas o subrayado en un oficio real, pero aquí solo el texto)
+                5.  **Cuerpo del Oficio:**
+                    *   Saludo inicial formal (Ej: Estimado/a [Título y Apellido del Destinatario], o el que corresponda al cargo y formalidad).
+                    *   Introducción: Breve presentación del remitente (nombre, cargo, y departamento si es relevante y no es "No especificado") y el propósito general del oficio, enlazando con el cuerpo principal.
+                    *   Desarrollo del Cuerpo Principal: Expande la idea central proporcionada en "Cuerpo Principal del Mensaje". Sé detallado, claro y estructura bien los párrafos (mínimo 2-3 párrafos de desarrollo). Adapta el lenguaje al tono "${elements.tono.value}".
+                    *   Si el tono es "Persuasivo", incluye argumentos sólidos y beneficios. Si es "Colaborativo", enfócate en sinergias y propuestas conjuntas. Si es "Urgente", justifica la urgencia de forma clara y cortés. Si es "Agradecimiento", sé específico en lo que agradeces. Si es "Solicitud", detalla claramente lo que se pide.
+                    *   Cierre: Menciona los siguientes pasos, reitera la disposición o lo que se espera del destinatario, si aplica.
+                6.  **Despedida:** Frase de despedida formal (Ej: Sin otro particular por el momento, aprovecho la ocasión para enviarle un cordial saludo. O: Agradezco de antemano su atención y colaboración, quedando a sus apreciables órdenes para cualquier aclaración.).
+                7.  **A T E N T A M E N T E** (Así, en mayúsculas y centrado si es posible, o alineado a la izquierda)
+                8.  (Espacio considerable para firma manuscrita - unas 3-4 líneas en blanco)
+                9.  ${elements.remitente.value.toUpperCase()}
+                10. ${elements.cargoRemitente.value.toUpperCase()}
+                ${(elements.departamentoRemitente.value && elements.departamentoRemitente.value.toLowerCase() !== 'no especificado') ? `11. ${elements.departamentoRemitente.value.toUpperCase()}` : ''}
+
+                **Instrucciones Adicionales Cruciales:**
+                - Presta máxima atención a la ortografía, gramática y puntuación en español.
+                - El lenguaje debe ser profesional y adecuado para un oficio formal mexicano, según el tono especificado.
+                - El cuerpo del oficio debe ser desarrollado de forma coherente y lógica. No te limites a repetir la entrada; debe ser un texto nuevo y completo.
+                - La fecha debe ser la actual.
+                - Si el departamento del remitente es "No especificado", omítelo en la sección de firma y en el número de oficio si lo usabas ahí.
+                - Devuelve únicamente el texto completo del oficio, sin ningún comentario adicional antes o después. Asegúrate de que cada parte del oficio esté claramente separada por saltos de línea apropiados.
+                `;
+                const oficioGenerado = await callGemini(prompt, "generar el oficio completo");
+                if (oficioGenerado) {
+                    renderDocument(oficioGenerado.trim());
+                    saveDraft();
+                    showModal("Oficio Generado", "La IA ha generado el borrador del oficio en la sección 'Documento Final'. Por favor, revísalo cuidadosamente.", 'success');
+                } else {
+                    renderDocument("// La generación del oficio falló. Revisa los mensajes de error o la consola e inténtalo de nuevo. //");
+                }
+                return oficioGenerado; // Return the result for safeAction
+            }, "Generando Oficio...", null, true, formFieldIds);
+        });
+
+        elements.copyBtn.addEventListener('click', () => {
+            if (!elements.outputContent.value.trim() || elements.outputContent.value.startsWith("//")) {
+                showModal("Nada que Copiar", "No hay un oficio generado válido para copiar.", 'info');
+                return;
+            }
+            navigator.clipboard.writeText(elements.outputContent.value)
+                .then(() => showModal("Texto Copiado", "El contenido del oficio ha sido copiado al portapapeles.", 'success'))
+                .catch(err => {
+                    console.error('Error al copiar:', err);
+                    showModal("Error al Copiar", "No se pudo copiar el texto. Intenta hacerlo manualmente.", 'error');
+                });
+        });
+
+        elements.summarizeBtn.addEventListener('click', () => {
+            safeAction(elements.summarizeBtn, async () => {
+                if (!elements.outputContent.value.trim() || elements.outputContent.value.startsWith("//")) {
+                     showModal("Oficio Requerido", "Primero genera un oficio completo para poder crear un resumen.", 'info');
+                     return null;
+                }
+                const oficioTexto = elements.outputContent.value;
+                const prompt = `Eres un especialista en comunicación ejecutiva. Crea un resumen ejecutivo conciso y profesional (aproximadamente 100-150 palabras) del siguiente oficio. El resumen debe capturar el propósito principal, los puntos clave y cualquier acción solicitada o conclusión importante.
+                Oficio:
+                ---
+                ${oficioTexto}
+                ---
+                Devuelve solo el resumen ejecutivo.`;
+                const resumen = await callGemini(prompt, "crear resumen ejecutivo del oficio");
+                if (resumen) {
+                    showModal("Resumen Ejecutivo (IA)", `<div class="text-left text-sm whitespace-pre-line p-2 bg-slate-700/50 rounded-md">${resumen}</div><hr class="my-3 border-slate-600"><p class="text-xs text-slate-400">Puedes copiar este resumen desde aquí.</p>`, 'info');
+                }
+                return resumen; // Return the result for safeAction
+            }, "Resumiendo...", null, true, ['outputContent']); // Though outputContent is not a user input field, this ensures it's not empty
+        });
+    </script>
+    </body>
+    </html>
