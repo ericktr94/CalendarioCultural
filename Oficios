@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Estratégico de Oficios con IA ✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+        }
+        textarea::placeholder {
+            color: #475569; /* slate-600 */
+            font-style: italic;
+            font-size: 0.9em;
+            transition: color 0.3s;
+        }
+        textarea:focus::placeholder {
+            color: #334155; /* slate-700 */
+        }
+        #output-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            line-height: 1.7;
+            color: #cbd5e1; /* slate-300 */
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: all 0.3s ease;
+        }
+        .glow-on-hover:hover {
+            box-shadow: 0 0 15px 2px rgba(34, 211, 238, 0.2);
+        }
+        /* Style for validation error */
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+        .focus\:ring-red-500:focus {
+            --tw-ring-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="text-slate-300">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-400">
+                Asistente Estratégico de Oficios
+            </h1>
+            <p class="text-slate-400 mt-3 text-lg">Diseña, pule y genera comunicados oficiales con precisión y elegancia.</p>
+        </header>
+
+        <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/30 p-4 md:p-8 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Columna de Entrada -->
+                <div class="flex flex-col space-y-6">
+                    <h2 class="text-xl font-semibold border-b border-slate-700 pb-3 text-slate-200">1. Define el Contenido</h2>
+                    
+                    <div>
+                        <label for="destinatario" class="block text-sm font-medium text-slate-400 mb-2">Destinatario (Nombre y Cargo)</label>
+                        <input type="text" id="destinatario" aria-label="Destinatario (Nombre y Cargo)" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-slate-200" placeholder="Ej: Dr. Juan Pérez, Director General">
+                    </div>
+
+                    <div>
+                        <label for="remitente" class="block text-sm font-medium text-slate-400 mb-2">Remitente (Tu Nombre y Cargo)</label>
+                        <input type="text" id="remitente" aria-label="Remitente (Tu Nombre y Cargo)" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-slate-200" placeholder="Ej: Lic. Ana Torres, Gerente de Proyectos">
+                    </div>
+
+                    <div>
+                        <label for="asunto" class="block text-sm font-medium text-slate-400 mb-2">Asunto</label>
+                         <div class="flex items-center space-x-2">
+                             <input type="text" id="asunto" aria-label="Asunto del oficio" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-slate-200" placeholder="Usa el asistente o escribe directamente">
+                             <button id="subject-assistant-btn" class="flex-shrink-0 bg-cyan-500/10 text-cyan-400 font-semibold p-3 rounded-md hover:bg-cyan-500/20 transition glow-on-hover" title="Asistente de Asunto con IA">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                             </button>
+                         </div>
+                    </div>
+
+                    <div>
+                        <label for="tono" class="block text-sm font-medium text-slate-400 mb-2">Tono del Oficio</label>
+                        <div class="flex items-center space-x-2">
+                             <select id="tono" aria-label="Tono del Oficio" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-slate-200">
+                                <option value="Formal y Respetuoso">Formal y Respetuoso</option>
+                                <option value="Urgente y Directo">Urgente y Directo</option>
+                                <option value="Cordial y Colaborativo">Cordial y Colaborativo</option>
+                                <option value="Enérgico y Firme">Enérgico y Firme</option>
+                                <option value="Conciliador y Diplomático">Conciliador y Diplomático</option>
+                            </select>
+                            <button id="tone-assistant-btn" class="flex-shrink-0 bg-cyan-500/10 text-cyan-400 font-semibold p-3 rounded-md hover:bg-cyan-500/20 transition glow-on-hover" title="Analizar Destinatario para sugerir Tono">
+                                ✨
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="cuerpo" class="block text-sm font-medium text-slate-400 mb-2">Mensaje Principal (Instrucciones)</label>
+                        <textarea id="cuerpo" aria-label="Mensaje Principal (Instrucciones)" rows="8" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-slate-200" placeholder="Aquí va la idea central. No te preocupes por el formato o la formalidad.&#10;&#10;Ejemplos:&#10;- Recordar al equipo de finanzas que el reporte de ventas es para el viernes.&#10;- Solicitar a RRHH la lista actualizada de candidatos.&#10;- Informar sobre el nuevo protocolo de seguridad."></textarea>
+                        <div class="mt-2 space-y-2">
+                            <button id="improve-text-btn" class="w-full bg-slate-700/80 text-slate-300 font-bold py-2 px-4 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 flex items-center justify-center transition-colors">
+                                <span class="mr-2">✨</span>
+                                Mejorar Redacción
+                                <span id="improve-spinner" class="spinner h-4 w-4 border-2 border-transparent border-t-slate-300 rounded-full hidden ml-2"></span>
+                            </button>
+                             <button id="anticipate-btn" class="w-full bg-slate-700/80 text-slate-300 font-bold py-2 px-4 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 flex items-center justify-center transition-colors">
+                                <span class="mr-2">🤔</span>
+                                Anticipar Reacciones
+                                <span id="anticipate-spinner" class="spinner h-4 w-4 border-2 border-transparent border-t-slate-300 rounded-full hidden ml-2"></span>
+                            </button>
+                             <button id="suggest-docs-btn" class="w-full bg-slate-700/80 text-slate-300 font-bold py-2 px-4 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 flex items-center justify-center transition-colors">
+                                <span class="mr-2">📎</span>
+                                Sugerir Anexos
+                                <span id="suggest-docs-spinner" class="spinner h-4 w-4 border-2 border-transparent border-t-slate-300 rounded-full hidden ml-2"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="generate-btn" class="w-full bg-cyan-600 text-white font-bold py-3 px-4 rounded-md hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 flex items-center justify-center transition-all text-base glow-on-hover">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m7.835 4.335a9 9 0 11-12.67-12.671 9 9 0 0112.67 12.671z" /></svg>
+                        <span id="generate-text">Generar Oficio Completo</span>
+                        <div id="spinner" class="spinner h-5 w-5 border-2 border-transparent border-t-white rounded-full hidden ml-2"></div>
+                    </button>
+                </div>
+
+                <!-- Columna de Salida -->
+                <div class="flex flex-col bg-slate-900/70 p-6 rounded-lg border border-slate-700">
+                    <h2 class="text-xl font-semibold border-b border-slate-700 pb-3 mb-4 text-slate-200">2. Documento Final</h2>
+                    <div id="output-container" class="flex-grow bg-slate-800/50 p-4 border border-slate-700 rounded-md min-h-[300px]">
+                        <pre id="output-content" class="text-slate-400 text-sm md:text-base">El oficio generado aparecerá aquí...</pre>
+                    </div>
+                    <div class="mt-4 flex flex-col space-y-2">
+                        <button id="copy-btn" class="w-full bg-slate-700 text-white font-bold py-3 px-4 rounded-md hover:bg-slate-600 transition-colors disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed glow-on-hover flex items-center justify-center" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM4 11a1 1 0 100 2h4a1 1 0 100-2H4z" /></svg>
+                            <span id="copy-text">Copiar Texto</span>
+                        </button>
+                        <button id="summarize-btn" class="w-full bg-green-500/10 text-green-300 font-bold py-3 px-4 rounded-md hover:bg-green-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover flex items-center justify-center" disabled>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2h4v4a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2h-4V6a2 2 0 00-2-2H4zm2 6a2 2 0 100-4 2 2 0 000 4zm6-2a2 2 0 11-4 0 2 2 0 014 0z" clip-rule="evenodd" /></svg>
+                            <span>✨ Crear Resumen Ejecutivo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="notification-modal" role="alert" aria-modal="true" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 z-50">
+        <div id="modal-content-box" class="modal-content bg-slate-800 border border-slate-700 rounded-lg shadow-2xl w-full max-w-2xl transform scale-95">
+        </div>
+    </div>
+
+    <script>
+        // --- DOM References ---
+        const destinatarioInput = document.getElementById('destinatario');
+        const remitenteInput = document.getElementById('remitente');
+        const asuntoInput = document.getElementById('asunto');
+        const cuerpoInput = document.getElementById('cuerpo');
+        const tonoSelect = document.getElementById('tono');
+        const generateBtn = document.getElementById('generate-btn');
+        const subjectAssistantBtn = document.getElementById('subject-assistant-btn');
+        const toneAssistantBtn = document.getElementById('tone-assistant-btn');
+        const improveTextBtn = document.getElementById('improve-text-btn');
+        const anticipateBtn = document.getElementById('anticipate-btn'); // New
+        const suggestDocsBtn = document.getElementById('suggest-docs-btn'); // New
+        const copyBtn = document.getElementById('copy-btn');
+        const summarizeBtn = document.getElementById('summarize-btn');
+        const generateText = document.getElementById('generate-text');
+        const copyText = document.getElementById('copy-text');
+        const mainSpinner = document.getElementById('spinner');
+        const improveSpinner = document.getElementById('improve-spinner');
+        const anticipateSpinner = document.getElementById('anticipate-spinner'); // New
+        const suggestDocsSpinner = document.getElementById('suggest-docs-spinner'); // New
+        const modal = document.getElementById('notification-modal');
+        const modalContentBox = document.getElementById('modal-content-box');
+        const outputContent = document.getElementById('output-content');
+        
+        // --- Gemini API Call ---
+        async function callGemini(prompt, jsonSchema = null) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            if (jsonSchema) {
+                payload.generationConfig = { responseMimeType: "application/json", responseSchema: jsonSchema };
+            }
+            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error(`API Error (${response.status}): ${await response.text()}`);
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate?.content?.parts?.[0]?.text) return candidate.content.parts[0].text;
+            if (candidate?.finishReason === 'SAFETY') throw new Error('Request blocked for safety reasons.');
+            throw new Error('Unexpected API response.');
+        }
+
+        // --- Modal Logic ---
+        function showModal(title, contentElement, showConfirm = false, onConfirm = null, confirmText = 'Confirmar') {
+            modalContentBox.innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-medium text-slate-100">${title}</h3><button id="modal-close-btn-x" class="text-slate-400 hover:text-white transition-colors text-2xl">&times;</button></div>
+                    <div id="modal-body"></div>
+                </div>
+                <div class="bg-slate-900/50 px-6 py-4 flex flex-row-reverse rounded-b-lg">
+                    <button id="modal-confirm-btn" class="${!showConfirm ? 'hidden' : ''} bg-cyan-600 text-white font-bold py-2 px-4 rounded-md hover:bg-cyan-500 transition ml-3">${confirmText}</button>
+                    <button id="modal-close-btn" type="button" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-600 transition">Cerrar</button>
+                </div>`;
+            modalContentBox.querySelector('#modal-body').appendChild(contentElement);
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalContentBox.classList.remove('scale-95'); }, 10);
+            document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+            document.getElementById('modal-close-btn-x').addEventListener('click', closeModal);
+            if (showConfirm && onConfirm) {
+                document.getElementById('modal-confirm-btn').addEventListener('click', () => { onConfirm(); closeModal(); });
+            }
+        }
+        function showSimpleModal(title, message) {
+            const content = document.createElement('p');
+            content.className = 'text-sm text-slate-400';
+            content.textContent = message;
+            showModal(title, content);
+        }
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContentBox.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // --- Safe Action Wrapper ---
+        async function safeAction(button, spinner, action) {
+            button.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            try {
+                await action();
+            } catch (error) {
+                console.error("Error during action:", error);
+                showSimpleModal('Error Inesperado', error.message);
+            } finally {
+                button.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        // --- Input Validation ---
+        const requiredInputs = [destinatarioInput, remitenteInput, asuntoInput, cuerpoInput];
+        function validateInputs() {
+            let allValid = true;
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('border-red-500', 'focus:ring-red-500');
+                    input.classList.remove('focus:ring-cyan-500');
+                    allValid = false;
+                } else {
+                    input.classList.remove('border-red-500', 'focus:ring-red-500');
+                    input.classList.add('focus:ring-cyan-500');
+                }
+            });
+            return allValid;
+        }
+        requiredInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value.trim()) {
+                    input.classList.remove('border-red-500', 'focus:ring-red-500');
+                    input.classList.add('focus:ring-cyan-500');
+                }
+            });
+        });
+
+        // --- Local Persistence ---
+        function saveDraft() {
+            const draft = {
+                destinatario: destinatarioInput.value,
+                remitente: remitenteInput.value,
+                asunto: asuntoInput.value,
+                cuerpo: cuerpoInput.value,
+                tono: tonoSelect.value
+            };
+            localStorage.setItem('oficioDraft', JSON.stringify(draft));
+        }
+        function loadDraft() {
+            try {
+                const draftJSON = localStorage.getItem('oficioDraft');
+                if (draftJSON) {
+                    const draft = JSON.parse(draftJSON);
+                    destinatarioInput.value = draft.destinatario || '';
+                    remitenteInput.value = draft.remitente || '';
+                    asuntoInput.value = draft.asunto || '';
+                    cuerpoInput.value = draft.cuerpo || '';
+                    tonoSelect.value = draft.tono || 'Formal y Respetuoso';
+                }
+            } catch (error) {
+                console.error("Error loading draft from localStorage:", error);
+                localStorage.removeItem('oficioDraft');
+            }
+        }
+        [destinatarioInput, remitenteInput, asuntoInput, cuerpoInput, tonoSelect].forEach(input => {
+            input.addEventListener('input', saveDraft);
+        });
+        window.addEventListener('DOMContentLoaded', loadDraft);
+
+
+        // --- Feature Implementations using safeAction ---
+
+        // NEW: Anticipate Reactions
+        anticipateBtn.addEventListener('click', () => {
+            safeAction(anticipateBtn, anticipateSpinner, async () => {
+                const cuerpo = cuerpoInput.value.trim();
+                if (!cuerpo) {
+                    showSimpleModal('Falta Contenido', 'Escribe el mensaje principal para poder anticipar reacciones.');
+                    return;
+                }
+                const prompt = `Como estratega en comunicación, lee el siguiente mensaje. Anticipa 3-4 posibles reacciones (pregunta, objeción, o duda) que el destinatario podría tener. El objetivo es ayudar a prepararse. Mensaje: "${cuerpo}"`;
+                const schema = { type: "OBJECT", properties: { reactions: { type: "ARRAY", items: { type: "OBJECT", properties: { type: { type: "STRING" }, text: { type: "STRING" } }, required: ["type", "text"] } } }, required: ["reactions"] };
+                const data = JSON.parse(await callGemini(prompt, schema));
+                const content = document.createElement('div');
+                content.className = 'space-y-3';
+                if (data.reactions && data.reactions.length > 0) {
+                    const reactionTypes = {
+                        pregunta: { icon: '❓', color: 'text-cyan-400' },
+                        objeción: { icon: '❗', color: 'text-amber-400' },
+                        duda: { icon: '🤔', color: 'text-purple-400' }
+                    };
+                    data.reactions.forEach(reaction => {
+                        const typeInfo = reactionTypes[reaction.type.toLowerCase()] || { icon: '💬', color: 'text-slate-400' };
+                        const item = document.createElement('div');
+                        item.className = 'flex items-start bg-slate-900 p-3 rounded-md';
+                        item.innerHTML = `<span class="text-xl mr-3 ${typeInfo.color}">${typeInfo.icon}</span><p class="text-slate-300">${reaction.text}</p>`;
+                        content.appendChild(item);
+                    });
+                } else {
+                    content.innerHTML = `<p class="text-slate-400">No se identificaron reacciones obvias. El mensaje parece claro y directo.</p>`;
+                }
+                showModal('Posibles Reacciones del Destinatario', content);
+            });
+        });
+
+        // NEW: Suggest Documents
+        suggestDocsBtn.addEventListener('click', () => {
+            safeAction(suggestDocsBtn, suggestDocsSpinner, async () => {
+                const cuerpo = cuerpoInput.value.trim();
+                if (!cuerpo) {
+                    showSimpleModal('Falta Contenido', 'Escribe el mensaje principal para poder sugerir anexos.');
+                    return;
+                }
+                const prompt = `Lee el siguiente borrador de un oficio. Sugiere una lista de hasta 3 documentos de soporte o anexos que sería útil adjuntar. Si no se necesitan, devuelve una lista vacía. Borrador: "${cuerpo}"`;
+                const schema = { type: "OBJECT", properties: { attachments: { type: "ARRAY", items: { type: "STRING" } } }, required: ["attachments"] };
+                const data = JSON.parse(await callGemini(prompt, schema));
+                const content = document.createElement('div');
+                content.className = 'space-y-2';
+                if (data.attachments && data.attachments.length > 0) {
+                     content.innerHTML = `<p class="text-slate-400 mb-3">Para reforzar tu mensaje, considera adjuntar lo siguiente:</p>`;
+                    const list = document.createElement('ul');
+                    list.className = 'space-y-2';
+                    data.attachments.forEach(doc => {
+                        const item = document.createElement('li');
+                        item.className = 'flex items-center bg-slate-900 p-3 rounded-md text-slate-300';
+                        item.innerHTML = `<span class="text-cyan-400 mr-3">📎</span> ${doc}`;
+                        list.appendChild(item);
+                    });
+                    content.appendChild(list);
+                } else {
+                    content.innerHTML = `<p class="text-slate-400">Este mensaje parece autocontenido y no requeriría anexos adicionales.</p>`;
+                }
+                showModal('Sugerencia de Anexos', content);
+            });
+        });
+
+
+        // Existing Features (adapted to use safeAction)
+        toneAssistantBtn.addEventListener('click', () => {
+            safeAction(toneAssistantBtn, null, async () => {
+                const destinatario = destinatarioInput.value.trim();
+                if (!destinatario) {
+                    showSimpleModal('Falta Información', 'Por favor, escribe el destinatario y su cargo para analizar el tono adecuado.');
+                    return;
+                }
+                const prompt = `Dado el destinatario "${destinatario}", sugiere el tono más apropiado de la lista: [Formal y Respetuoso, Urgente y Directo, Cordial y Colaborativo, Enérgico y Firme, Conciliador y Diplomático]. Da una justificación breve.`;
+                const schema = { type: "OBJECT", properties: { suggested_tone: { type: "STRING" }, justification: { type: "STRING" } }, required: ["suggested_tone", "justification"] };
+                const data = JSON.parse(await callGemini(prompt, schema));
+                const content = document.createElement('div');
+                content.className = 'text-slate-300 space-y-4';
+                content.innerHTML = `<p class="text-slate-400">Basado en <span class="font-semibold text-cyan-400">${destinatario}</span>, sugerimos:</p><div class="bg-slate-900 p-4 rounded-md"><h4 class="text-lg font-bold text-cyan-400">${data.suggested_tone}</h4><p class="mt-2 text-slate-400 italic">"${data.justification}"</p></div>`;
+                showModal('Sugerencia de Tono', content, true, () => { tonoSelect.value = data.suggested_tone; }, 'Aplicar Tono');
+            });
+        });
+        
+        summarizeBtn.addEventListener('click', () => {
+            safeAction(summarizeBtn, null, async () => {
+                const documentText = outputContent.textContent;
+                if (!documentText || documentText.startsWith('El oficio')) {
+                    showSimpleModal('Sin Contenido', 'Primero genera un oficio para poder resumirlo.');
+                    return;
+                }
+                const prompt = `Del siguiente oficio, crea un resumen de 2 frases y extrae una lista de acciones clave. OFICIO: ${documentText}`;
+                const schema = { type: "OBJECT", properties: { summary: { type: "STRING" }, action_items: { type: "ARRAY", items: { type: "STRING" } } }, required: ["summary", "action_items"] };
+                const data = JSON.parse(await callGemini(prompt, schema));
+                const content = document.createElement('div');
+                content.className = 'text-slate-300 space-y-4';
+                let actionItemsHtml = data.action_items.length > 0 ? data.action_items.map(item => `<li class="flex items-start"><span class="text-green-400 mr-2">✓</span><span>${item}</span></li>`).join('') : '<li>No se identificaron acciones explícitas.</li>';
+                content.innerHTML = `<h4 class="text-md font-semibold text-slate-200">Resumen:</h4><p class="text-slate-400 italic">"${data.summary}"</p><h4 class="text-md font-semibold text-slate-200 border-t border-slate-700 pt-4 mt-4">Puntos Clave:</h4><ul class="space-y-2 text-slate-400 list-inside">${actionItemsHtml}</ul>`;
+                showModal('Resumen Ejecutivo', content);
+            });
+        });
+
+        subjectAssistantBtn.addEventListener('click', () => {
+            safeAction(subjectAssistantBtn, null, async () => {
+                const cuerpo = cuerpoInput.value.trim();
+                if (!cuerpo) { showSimpleModal('Error', 'Primero escribe el mensaje principal.'); return; }
+                const prompt = `Analiza: "${cuerpo}". Extrae 3-5 verbos de acción, 3-5 temas centrales, y 3 asuntos completos.`;
+                const schema = { type: "OBJECT", properties: { action_verbs: { type: "ARRAY", items: { type: "STRING" } }, core_topics: { type: "ARRAY", items: { type: "STRING" } }, suggested_combinations: { type: "ARRAY", items: { type: "STRING" } } }, required: ["action_verbs", "core_topics", "suggested_combinations"] };
+                const data = JSON.parse(await callGemini(prompt, schema));
+                showModal('Asistente de Asunto', buildAssistantUI(data), true, () => { asuntoInput.value = document.getElementById('subject-preview').value; });
+            });
+        });
+
+        function buildAssistantUI(data) {
+            const container = document.createElement('div');
+            container.className = 'space-y-5';
+            let selectedAction = '', selectedTopic = '';
+            container.innerHTML = `<div><label class="block text-sm font-medium text-slate-400 mb-1">Asunto Construido</label><input id="subject-preview" type="text" class="w-full p-2 bg-slate-900 border border-slate-600 rounded-md text-slate-200" placeholder="Selecciona bloques..."></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><h4 class="font-semibold mb-2 text-slate-300">1. Acción</h4><div id="action-tags" class="flex flex-wrap gap-2"></div></div><div><h4 class="font-semibold mb-2 text-slate-300">2. Tema</h4><div id="topic-tags" class="flex flex-wrap gap-2"></div></div></div><div><h4 class="font-semibold mb-2 border-t border-slate-700 pt-4 text-slate-300">Sugerencias</h4><div id="quick-suggestions" class="space-y-2"></div></div>`;
+            const previewInput = container.querySelector('#subject-preview');
+            const updatePreview = () => { previewInput.value = (selectedAction && selectedTopic) ? `${selectedAction} de ${selectedTopic}` : selectedAction; };
+            data.action_verbs.forEach(verb => { const tag = document.createElement('button'); tag.textContent = verb; tag.className = 'suggestion-tag bg-cyan-500/10 text-cyan-300 text-sm font-medium px-3 py-1 rounded-full hover:bg-cyan-500/20 transition'; tag.onclick = () => { selectedAction = verb; updatePreview(); }; container.querySelector('#action-tags').appendChild(tag); });
+            data.core_topics.forEach(topic => { const tag = document.createElement('button'); tag.textContent = topic; tag.className = 'suggestion-tag bg-green-500/10 text-green-300 text-sm font-medium px-3 py-1 rounded-full hover:bg-green-500/20 transition'; tag.onclick = () => { selectedTopic = topic; updatePreview(); }; container.querySelector('#topic-tags').appendChild(tag); });
+            data.suggested_combinations.forEach(combo => { const item = document.createElement('div'); item.textContent = combo; item.className = 'p-2 rounded-md hover:bg-slate-700 cursor-pointer text-sm text-slate-300 transition'; item.onclick = () => { previewInput.value = combo; }; container.querySelector('#quick-suggestions').appendChild(item); });
+            return container;
+        }
+
+        improveTextBtn.addEventListener('click', () => {
+            safeAction(improveTextBtn, improveSpinner, async () => {
+                const cuerpo = cuerpoInput.value.trim();
+                if (!cuerpo) { showSimpleModal('Error', 'Escribe un borrador para mejorarlo.'); return; }
+                const prompt = `Revisa y mejora el borrador con tono "${tonoSelect.value}". Devuelve solo el texto mejorado.\n\nBorrador: "${cuerpo}"`;
+                cuerpoInput.value = (await callGemini(prompt)).trim();
+                showSimpleModal('Redacción Mejorada', 'El texto ha sido actualizado.');
+            });
+        });
+
+        generateBtn.addEventListener('click', () => {
+            if (!validateInputs()) {
+                showSimpleModal('Faltan Datos', 'Por favor, completa los campos obligatorios resaltados en rojo.');
+                return;
+            }
+            safeAction(generateBtn, mainSpinner, async () => {
+                generateText.textContent = 'Generando...';
+                outputContent.textContent = 'Generando...';
+                outputContent.classList.remove('text-slate-400');
+                outputContent.classList.add('text-slate-200');
+                copyBtn.disabled = true; summarizeBtn.disabled = true;
+                const [dest, rem, asunto, cuerpo] = [destinatarioInput.value.trim(), remitenteInput.value.trim(), asuntoInput.value.trim(), cuerpoInput.value.trim()];
+                const prompt = `Redacta el cuerpo de un oficio formal con tono "${tonoSelect.value}", basado en: "${cuerpo}". Devuelve solo el cuerpo del oficio.`;
+                const generatedText = await callGemini(prompt);
+                renderDocument(dest, rem, asunto, generatedText);
+                copyBtn.disabled = false;
+                summarizeBtn.disabled = false;
+                generateText.textContent = 'Generar Oficio Completo';
+            });
+        });
+
+        function renderDocument(destinatario, remitente, asunto, cuerpoGenerado) {
+            const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+            outputContent.textContent = `ASUNTO: ${asunto}\nFECHA: ${fecha}\n\n${destinatario.toUpperCase()}\nPRESENTE.\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n${cuerpoGenerado.trim()}\n\nSin otro particular por el momento, quedo a sus órdenes para cualquier aclaración.\n\nATENTAMENTE\n\n\n___________________________\n${remitente.toUpperCase()}`;
+        }
+        
+        copyBtn.addEventListener('click', () => {
+            if (copyBtn.disabled) return;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = outputContent.textContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try { document.execCommand('copy'); copyText.textContent = '¡Copiado!'; setTimeout(() => { copyText.textContent = 'Copiar Texto'; }, 2000); }
+            catch (err) { showSimpleModal('Error', 'No se pudo copiar el texto.'); }
+            document.body.removeChild(tempTextArea);
+        });
+    </script>
+</body>
+</html>
