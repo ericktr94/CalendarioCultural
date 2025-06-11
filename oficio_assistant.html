@@ -71,36 +71,16 @@
             <div class="bg-slate-800 p-5 sm:p-7 rounded-xl shadow-2xl space-y-5 border border-slate-700">
                 <h2 class="text-xl sm:text-2xl font-semibold text-cyan-400 border-b border-slate-700 pb-3 mb-5">1. Define el Contenido del Oficio</h2>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Destinatario (Nombre)</label>
-                        <input type="text" id="destinatario" placeholder="Ej: Dr. Elena Ríos Pérez" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
-                    </div>
-                    <div>
-                        <label for="cargo_destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Cargo del Destinatario</label>
-                        <input type="text" id="cargo_destinatario" placeholder="Ej: Directora General de Investigación" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
-                    </div>
-                </div>
                 <div>
-                    <label for="institucion_destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Institución del Destinatario</label>
-                    <input type="text" id="institucion_destinatario" placeholder="Ej: Universidad Nacional de Ciencia Avanzada" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                    <label for="destinatario" class="block text-sm font-medium text-slate-300 mb-1.5">Destinatario (Nombre, Cargo, Institución)</label>
+                    <textarea id="destinatario" rows="3" placeholder="Ej: Dr. Elena Ríos Pérez&#10;Directora General de Investigación&#10;Universidad Nacional de Ciencia Avanzada" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm"></textarea>
                 </div>
 
                 <hr class="border-slate-700 my-5">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Remitente (Tu Nombre)</label>
-                        <input type="text" id="remitente" placeholder="Ej: Luis Morales Vargas" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
-                    </div>
-                    <div>
-                        <label for="cargo_remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Tu Cargo</label>
-                        <input type="text" id="cargo_remitente" placeholder="Ej: Coordinador de Proyectos Estratégicos" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
-                    </div>
-                </div>
-                 <div>
-                    <label for="departamento_remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Tu Departamento/Área (Opcional)</label>
-                    <input type="text" id="departamento_remitente" placeholder="Ej: Departamento de Innovación y Desarrollo Tecnológico" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm">
+                <div>
+                    <label for="remitente" class="block text-sm font-medium text-slate-300 mb-1.5">Remitente (Tu Nombre, Cargo, Departamento)</label>
+                    <textarea id="remitente" rows="3" placeholder="Ej: Luis Morales Vargas&#10;Coordinador de Proyectos Estratégicos&#10;Departamento de Innovación y Desarrollo Tecnológico" class="form-input w-full bg-slate-700/50 border-slate-600 rounded-lg p-2.5 text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-sm"></textarea>
                 </div>
 
                 <hr class="border-slate-700 my-5">
@@ -212,16 +192,12 @@
 
     <script>
         // --- Configuration ---
-        const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; // IMPORTANT: Replace with your actual Gemini API Key
+        const apiKey = ""; // Set your API Key here if you are not using a backend
 
         // --- DOM Element References ---
         const elements = {
             destinatario: document.getElementById('destinatario'),
-            cargoDestinatario: document.getElementById('cargo_destinatario'),
-            institucionDestinatario: document.getElementById('institucion_destinatario'),
             remitente: document.getElementById('remitente'),
-            cargoRemitente: document.getElementById('cargo_remitente'),
-            departamentoRemitente: document.getElementById('departamento_remitente'),
             asunto: document.getElementById('asunto'),
             tono: document.getElementById('tono'),
             cuerpo: document.getElementById('cuerpo'),
@@ -261,7 +237,7 @@
             else elements.modalIconInfo.classList.remove('hidden');
 
             elements.notificationModal.classList.remove('hidden');
-            requestAnimationFrame(() => { // Ensure 'hidden' is removed before starting transition
+            requestAnimationFrame(() => {
                 elements.notificationModal.classList.remove('opacity-0');
                 elements.modalContent.classList.remove('opacity-0', 'scale-95');
             });
@@ -289,51 +265,48 @@
                 const field = elements[id];
                 if (field && !field.value.trim()) {
                     field.classList.add('border-red-500', 'focus:ring-red-500');
-                    field.classList.remove('focus:ring-cyan-500', 'focus:border-cyan-500');
+                    field.classList.remove('focus:ring-cyan-500', 'focus:border-cyan-500', 'border-slate-600');
                     allValid = false;
                 } else if (field) {
                     field.classList.remove('border-red-500', 'focus:ring-red-500');
-                    field.classList.add('focus:ring-cyan-500', 'focus:border-cyan-500');
+                    field.classList.add('focus:ring-cyan-500', 'focus:border-cyan-500', 'border-slate-600');
                 }
             });
             if (!allValid) {
-                showModal("Campos Incompletos", "Por favor, completa todos los campos marcados en rojo. Son esenciales para generar el oficio.", 'error');
+                showModal("Campos Incompletos", "Por favor, completa todos los campos marcados en rojo. Son esenciales para la función solicitada.", 'error');
             }
             return allValid;
         }
 
         function renderDocument(text) {
             elements.outputContent.value = text;
-            elements.outputContent.scrollTop = 0; // Scroll to top
+            elements.outputContent.scrollTop = 0;
             elements.spinnerOverlay.classList.add('hidden');
         }
 
         async function callGemini(prompt, actionDescription = "esta acción") {
-            if (GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
+            if (!apiKey) { // Check if API key is missing
                 showModal(
                     "Configuración Requerida",
-                    "Por favor, reemplaza <code>YOUR_API_KEY_HERE</code> con tu clave API de Google Gemini en el script (cerca de la línea 213) para activar las funciones de IA.<br><br>Puedes obtener una clave en <a href='https://aistudio.google.com/app/apikey' target='_blank' class='text-cyan-400 underline hover:text-cyan-300'>Google AI Studio</a>.",
+                    "La clave API de Google Gemini no ha sido configurada en el script (variable <code>apiKey</code>). Por favor, añade tu clave para activar las funciones de IA.<br><br>Puedes obtener una clave en <a href='https://aistudio.google.com/app/apikey' target='_blank' class='text-cyan-400 underline hover:text-cyan-300'>Google AI Studio</a>.",
                     'error'
                 );
                 return null;
             }
-
-            showModal("Procesando IA...", `La IA está trabajando en ${actionDescription}. Esto puede tomar unos segundos...`, 'info');
-            elements.spinnerOverlay.classList.remove('hidden'); // Show spinner on output area
-
+            // No initial "Procesando..." modal here, safeAction handles button state
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
                         generationConfig: {
-                            temperature: 0.6, // Slightly lower for more predictable formal text
+                            temperature: 0.6,
                             topK: 20,
                             topP: 0.85,
                             maxOutputTokens: 2048,
                         },
-                        safetySettings: [ // Adjusted for potentially sensitive official language
+                        safetySettings: [
                             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
                             { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
                             { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
@@ -342,12 +315,10 @@
                     })
                 });
 
-                closeModal(); // Close the "Procesando..." modal after fetch attempt
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('Error en API de Gemini:', errorData);
-                    let userMessage = `Error ${response.status} al contactar la IA.`;
+                    let userMessage = `Error ${response.status} al contactar la IA para ${actionDescription}.`;
                      if (errorData.error && errorData.error.message) {
                         userMessage += `<br><small>Detalle: ${errorData.error.message.substring(0, 250)}</small>`;
                         if(response.status === 400 && errorData.error.message.includes("API key not valid")) {
@@ -357,13 +328,24 @@
                         }
                     }
                     showModal("Error de IA", userMessage, 'error');
-                    elements.spinnerOverlay.classList.add('hidden');
                     return null;
                 }
 
                 const result = await response.json();
 
                 if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                    if (result.candidates[0].finishReason === "SAFETY") {
+                         let safetyMessage = "La respuesta de la IA fue bloqueada por motivos de seguridad.";
+                         if (result.candidates[0].safetyRatings && result.candidates[0].safetyRatings.length > 0) {
+                            const specificReasons = result.candidates[0].safetyRatings
+                                .filter(r => r.blocked)
+                                .map(r => `${r.category.replace('HARM_CATEGORY_', '')}: ${r.probability}`)
+                                .join(', ');
+                            if (specificReasons) safetyMessage += ` Detalles: ${specificReasons}. Intenta reformular tu petición.`;
+                        }
+                        showModal("Respuesta Bloqueada", safetyMessage, "error");
+                        return null;
+                    }
                     return result.candidates[0].content.parts[0].text;
                 } else {
                     let denialReason = "La IA no pudo generar una respuesta satisfactoria.";
@@ -376,25 +358,25 @@
                                 .join(', ');
                             if (specificReasons) denialReason += ` Detalles: ${specificReasons}.`;
                         }
-                    } else if (result.candidates && result.candidates[0] && result.candidates[0].finishReason !== "STOP") {
+                    } else if (result.candidates && result.candidates[0] && result.candidates[0].finishReason !== "STOP" && result.candidates[0].finishReason !== "MAX_TOKENS") {
                          denialReason = `La IA no pudo completar la generación. Razón: ${result.candidates[0].finishReason}. Considera simplificar o acortar tu solicitud.`;
+                    } else if (result.candidates && result.candidates[0] && result.candidates[0].finishReason === "MAX_TOKENS") {
+                        denialReason = `La IA generó una respuesta que excede el límite de longitud. Intenta una solicitud más concisa.`;
+                         return result.candidates[0].content.parts[0].text;
                     }
                     showModal("Respuesta de IA Incompleta", denialReason, 'error');
-                    elements.spinnerOverlay.classList.add('hidden');
                     return null;
                 }
             } catch (error) {
-                closeModal();
-                console.error('Error al llamar a Gemini:', error);
+                console.error(`Error al llamar a Gemini para ${actionDescription}:`, error);
                 showModal("Error de Conexión", `No se pudo conectar con el servicio de IA. Verifica tu conexión a internet. <br><small>(${error.message})</small>`, 'error');
-                elements.spinnerOverlay.classList.add('hidden');
                 return null;
             }
         }
 
         async function safeAction(buttonElement, actionFunction, loadingText = "Procesando...", successMessage = null, requiresValidation = false, validationFields = []) {
             if (requiresValidation && !validateInputs(validationFields)) {
-                return; // Stop if validation fails
+                return;
             }
 
             const originalContent = buttonElement.innerHTML;
@@ -403,9 +385,13 @@
             buttonElement.innerHTML = `<svg class="spinner -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ${loadingText}`;
             buttonElement.title = loadingText;
 
+            let resultFromAction;
             try {
-                const result = await actionFunction(); // Action function might return a value or handle its own modals
-                if (successMessage && result) { // Only show generic success if action didn't show its own and returned truthy
+                if (buttonElement === elements.generateBtn) {
+                    elements.spinnerOverlay.classList.remove('hidden');
+                }
+                resultFromAction = await actionFunction();
+                if (successMessage && resultFromAction) {
                     showModal("Acción Completada", successMessage, "success");
                 }
             } catch (error) {
@@ -415,28 +401,30 @@
                 buttonElement.disabled = false;
                 buttonElement.innerHTML = originalContent;
                 buttonElement.title = originalTitle;
-                if (elements.spinnerOverlay && !elements.generateBtn.disabled) { // Hide main spinner if generateBtn is enabled
-                     elements.spinnerOverlay.classList.add('hidden');
+                // Hide overlay spinner if it was shown for this action, or if the action failed (resultFromAction is null/undefined)
+                if (buttonElement === elements.generateBtn || !resultFromAction) {
+                    elements.spinnerOverlay.classList.add('hidden');
                 }
             }
         }
 
-        const formFieldIds = ['destinatario', 'cargoDestinatario', 'institucionDestinatario', 'remitente', 'cargoRemitente', 'asunto', 'cuerpo'];
-        const allFormFields = [...formFieldIds.map(id => elements[id]), elements.departamentoRemitente, elements.tono, elements.outputContent];
+        // Fields that are absolutely required for the main 'generate' action
+        const requiredFieldsForGenerate = ['destinatario', 'remitente', 'asunto', 'cuerpo'];
+        // Fields that are required for most AI assistant actions
+        const requiredFieldsForAssistants = ['cuerpo'];
+
+
+        // --- Automatic Draft Saving and Loading ---
+        const draftFields = [ // Define specifically which fields go into the draft
+            elements.destinatario, elements.remitente,
+            elements.asunto, elements.tono, elements.cuerpo, elements.outputContent
+        ];
 
         function saveDraft() {
-            const draft = {
-                destinatario: elements.destinatario.value,
-                cargoDestinatario: elements.cargoDestinatario.value,
-                institucionDestinatario: elements.institucionDestinatario.value,
-                remitente: elements.remitente.value,
-                cargoRemitente: elements.cargoRemitente.value,
-                departamentoRemitente: elements.departamentoRemitente.value,
-                asunto: elements.asunto.value,
-                tono: elements.tono.value,
-                cuerpo: elements.cuerpo.value,
-                outputContent: elements.outputContent.value,
-            };
+            const draft = {};
+            draftFields.forEach(field => {
+                if (field) draft[field.id] = field.value; // Use field.id as key
+            });
             localStorage.setItem('oficioDraft', JSON.stringify(draft));
         }
 
@@ -444,30 +432,29 @@
             const draftString = localStorage.getItem('oficioDraft');
             if (draftString) {
                 const draft = JSON.parse(draftString);
-                elements.destinatario.value = draft.destinatario || '';
-                elements.cargoDestinatario.value = draft.cargoDestinatario || '';
-                elements.institucionDestinatario.value = draft.institucionDestinatario || '';
-                elements.remitente.value = draft.remitente || '';
-                elements.cargoRemitente.value = draft.cargoRemitente || '';
-                elements.departamentoRemitente.value = draft.departamentoRemitente || '';
-                elements.asunto.value = draft.asunto || '';
-                elements.tono.value = draft.tono || 'formal';
-                elements.cuerpo.value = draft.cuerpo || '';
-                elements.outputContent.value = draft.outputContent || '';
-                 if(Object.values(draft).some(val => val && val.length > 0)) {
+                let hasContent = false;
+                draftFields.forEach(field => {
+                    if (field && draft[field.id] !== undefined) {
+                        field.value = draft[field.id];
+                        if (draft[field.id].trim() !== "") hasContent = true;
+                    }
+                });
+                 if(hasContent) {
                     showModal("Borrador Cargado", "Se ha cargado el último borrador guardado automáticamente.", "success");
                 }
             }
         }
 
-        allFormFields.forEach(input => {
+        draftFields.forEach(input => {
             if (input) input.addEventListener('input', saveDraft);
         });
         window.addEventListener('load', loadDraft);
 
+
+        // --- Event Listeners for AI Assistant Buttons ---
         elements.subjectAssistantBtn.addEventListener('click', () => {
             safeAction(elements.subjectAssistantBtn, async () => {
-                if (!validateInputs(['cuerpo'])) return;
+                if (!validateInputs(requiredFieldsForAssistants)) return null;
                 const currentAsunto = elements.asunto.value;
                 const cuerpoMensaje = elements.cuerpo.value;
                 const prompt = `Basado en el siguiente cuerpo de un oficio, sugiere 3 opciones de "Asunto" breves, claras y profesionales. Si ya existe un asunto, mejóralo o da alternativas.
@@ -483,12 +470,13 @@
                         `<div>${suggestionHtml}</div><p class="mt-3 text-xs text-slate-400">Haz clic en una sugerencia para usarla en el campo 'Asunto'.</p>`,
                         'info');
                 }
-            }, "Sugiriendo...", null, true, ['cuerpo']);
+                return suggestions;
+            }, "Sugiriendo...", null, true, requiredFieldsForAssistants);
         });
 
         elements.toneAssistantBtn.addEventListener('click', () => {
             safeAction(elements.toneAssistantBtn, async () => {
-                if (!validateInputs(['cuerpo'])) return;
+                if (!validateInputs(requiredFieldsForAssistants)) return null;
                 const cuerpoMensaje = elements.cuerpo.value;
                 const prompt = `Analiza el siguiente cuerpo de un oficio y determina cuál sería el tono más adecuado de la siguiente lista: Formal y Respetuoso, Persuasivo y Convincente, Claro y Conciso (Informativo), Abierto a la Colaboración, Urgente, Agradecimiento Cordial, Solicitud Amable pero Firme. Justifica brevemente tu elección (1-2 líneas).
                 Cuerpo del oficio: "${cuerpoMensaje}"
@@ -496,17 +484,20 @@
                 const suggestion = await callGemini(prompt, "analizar el tono del mensaje");
                 if (suggestion) {
                      const suggestedTone = suggestion.split(':')[0].trim();
-                     // Attempt to select the suggested tone in the dropdown
                      const toneOption = Array.from(elements.tono.options).find(opt => opt.textContent.startsWith(suggestedTone));
-                     if (toneOption) elements.tono.value = toneOption.value;
+                     if (toneOption) {
+                        elements.tono.value = toneOption.value;
+                        saveDraft();
+                     }
                     showModal("Sugerencia de Tono (IA)", `<div class="text-left whitespace-pre-line">${suggestion}</div> ${toneOption ? '<p class="mt-2 text-xs text-slate-400">El tono sugerido ha sido seleccionado.</p>' : ''}`, 'info');
                 }
-            }, "Analizando...", null, true, ['cuerpo']);
+                return suggestion;
+            }, "Analizando...", null, true, requiredFieldsForAssistants);
         });
 
         elements.improveTextBtn.addEventListener('click', () => {
             safeAction(elements.improveTextBtn, async () => {
-                if (!validateInputs(['cuerpo'])) return;
+                if (!validateInputs(requiredFieldsForAssistants)) return null;
                 const currentCuerpo = elements.cuerpo.value;
                 const prompt = `Revisa y mejora el siguiente texto para el cuerpo de un oficio, manteniendo el significado original pero optimizando la claridad, concisión, gramática, ortografía y profesionalismo, considerando un tono "${elements.tono.value}". Devuelve solo el texto mejorado, sin introducciones ni comentarios adicionales.
                 Texto original: "${currentCuerpo}"`;
@@ -516,12 +507,13 @@
                     saveDraft();
                     showModal("Redacción Mejorada (IA)", "El 'Mensaje Principal / Cuerpo del Oficio' ha sido actualizado con las mejoras de la IA.", 'success');
                 }
-            }, "Mejorando...", null, true, ['cuerpo']);
+                return improvedText;
+            }, "Mejorando...", null, true, requiredFieldsForAssistants);
         });
 
         elements.anticipateBtn.addEventListener('click', () => {
             safeAction(elements.anticipateBtn, async () => {
-                if (!validateInputs(['asunto', 'cuerpo'])) return;
+                if (!validateInputs(['asunto', 'cuerpo'])) return null;
                 const currentCuerpo = elements.cuerpo.value;
                 const currentAsunto = elements.asunto.value;
                 const prompt = `Dado el siguiente asunto y cuerpo de un oficio con un tono "${elements.tono.value}", anticipa 2-3 posibles reacciones clave (positivas, negativas o preguntas específicas) que podría tener el destinatario. Sé conciso y directo.
@@ -532,12 +524,13 @@
                 if (reactions) {
                     showModal("Posibles Reacciones (IA)", `<div class="text-left whitespace-pre-line text-sm">${reactions}</div>`, 'info');
                 }
+                return reactions;
             }, "Anticipando...", null, true, ['asunto', 'cuerpo']);
         });
 
         elements.suggestDocsBtn.addEventListener('click', () => {
             safeAction(elements.suggestDocsBtn, async () => {
-                if (!validateInputs(['asunto', 'cuerpo'])) return;
+                if (!validateInputs(['asunto', 'cuerpo'])) return null;
                 const currentCuerpo = elements.cuerpo.value;
                 const currentAsunto = elements.asunto.value;
                 const prompt = `Basado en el asunto y cuerpo de este oficio con tono "${elements.tono.value}", sugiere 2-3 documentos o tipos de información específicos que podrían ser útiles adjuntar como anexos para dar soporte, claridad o facilitar la acción del destinatario. Si no se necesitan anexos, indícalo justificadamente.
@@ -550,57 +543,72 @@
                 if (suggestions) {
                     showModal("Sugerencias de Anexos (IA)", `<div class="text-left whitespace-pre-line text-sm">${suggestions}</div>`, 'info');
                 }
+                return suggestions;
             }, "Sugiriendo...", null, true, ['asunto', 'cuerpo']);
         });
 
+        // --- Main Generate Button ---
         elements.generateBtn.addEventListener('click', () => {
             safeAction(elements.generateBtn, async () => {
-                if (!validateInputs(formFieldIds)) return null; // Validate required fields
+                if (!validateInputs(requiredFieldsForGenerate)) return null;
+
+                // Parse destinatario and remitente textareas
+                const destinatarioLines = elements.destinatario.value.split('\n');
+                const remitenteLines = elements.remitente.value.split('\n');
+
+                const destinatarioNombre = destinatarioLines[0] || "";
+                const destinatarioCargo = destinatarioLines[1] || "";
+                const destinatarioInstitucion = destinatarioLines[2] || "";
+
+                const remitenteNombre = remitenteLines[0] || "";
+                const remitenteCargo = remitenteLines[1] || "";
+                const remitenteDepartamento = remitenteLines[2] || "No especificado";
 
                 const prompt = `
                 Actúa como un experto asistente en redacción de documentos oficiales en español mexicano.
                 Genera un oficio formal completo basado estrictamente en la siguiente información y estructura. Presta especial atención al tono solicitado.
 
                 **Información Proporcionada:**
-                - Nombre del Destinatario: ${elements.destinatario.value}
-                - Cargo del Destinatario: ${elements.cargoDestinatario.value}
-                - Institución del Destinatario: ${elements.institucionDestinatario.value}
-                - Nombre del Remitente: ${elements.remitente.value}
-                - Cargo del Remitente: ${elements.cargoRemitente.value}
-                - Departamento/Área del Remitente: ${elements.departamentoRemitente.value || "No especificado"}
+                - Nombre del Destinatario: ${destinatarioNombre}
+                - Cargo del Destinatario: ${destinatarioCargo}
+                - Institución del Destinatario: ${destinatarioInstitucion}
+                - Nombre del Remitente: ${remitenteNombre}
+                - Cargo del Remitente: ${remitenteCargo}
+                - Departamento/Área del Remitente: ${remitenteDepartamento}
                 - Asunto del Oficio: ${elements.asunto.value}
                 - Tono del Oficio: ${elements.tono.value}
                 - Cuerpo Principal del Mensaje (desarrollar a partir de esto): ${elements.cuerpo.value}
 
                 **Estructura Obligatoria del Oficio:**
-                1.  **Lugar y Fecha:** (Inserta la fecha actual completa. Ej: Ciudad de México, a [DÍA] de [MES EN LETRAS] de [AÑO])
-                2.  **Número de Oficio:** (Utiliza un placeholder profesional y creíble para el contexto mexicano, Ej: DIR.GRAL./0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()} o similar. Si el Depto. Remitente existe y no es "No especificado", úsalo como parte del número, ej: [INICIALES_DEPTO_REM.]/0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()})
+                1.  **Lugar y Fecha:** (Inserta la fecha actual completa. Ej: Ciudad de México, a ${new Date().getDate()} de ${new Date().toLocaleString('es-MX', { month: 'long' })} de ${new Date().getFullYear()})
+                2.  **Número de Oficio:** (Utiliza un placeholder profesional y creíble para el contexto mexicano, Ej: DIR.GRAL./0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()} o similar. Si el Depto. Remitente existe y no es "No especificado", úsalo como parte del número, ej: ${(remitenteDepartamento && remitenteDepartamento !== "No especificado" ? remitenteDepartamento.substring(0,5).toUpperCase().replace(/\s/g, '') : 'DEPTO')}/0${Math.floor(Math.random()*90+10)}/${new Date().getFullYear()})
                 3.  **Datos del Destinatario (cada uno en nueva línea):**
-                    ${elements.destinatario.value.toUpperCase()}
-                    ${elements.cargoDestinatario.value.toUpperCase()}
-                    ${elements.institucionDestinatario.value.toUpperCase()}
-                    P R E S E N T E .- (Así, en mayúsculas y con guion al final)
-                4.  **Asunto:** ${elements.asunto.value} (Normalmente en negritas o subrayado en un oficio real, pero aquí solo el texto)
+                    ${destinatarioNombre.toUpperCase()}
+                    ${destinatarioCargo.toUpperCase()}
+                    ${destinatarioInstitucion.toUpperCase()}
+                    P R E S E N T E .-
+                4.  **Asunto:** ${elements.asunto.value}
                 5.  **Cuerpo del Oficio:**
-                    *   Saludo inicial formal (Ej: Estimado/a [Título y Apellido del Destinatario], o el que corresponda al cargo y formalidad).
+                    *   Saludo inicial formal (Ej: Estimado/a ${destinatarioNombre.split(' ')[0] || 'Destinatario'},).
                     *   Introducción: Breve presentación del remitente (nombre, cargo, y departamento si es relevante y no es "No especificado") y el propósito general del oficio, enlazando con el cuerpo principal.
                     *   Desarrollo del Cuerpo Principal: Expande la idea central proporcionada en "Cuerpo Principal del Mensaje". Sé detallado, claro y estructura bien los párrafos (mínimo 2-3 párrafos de desarrollo). Adapta el lenguaje al tono "${elements.tono.value}".
                     *   Si el tono es "Persuasivo", incluye argumentos sólidos y beneficios. Si es "Colaborativo", enfócate en sinergias y propuestas conjuntas. Si es "Urgente", justifica la urgencia de forma clara y cortés. Si es "Agradecimiento", sé específico en lo que agradeces. Si es "Solicitud", detalla claramente lo que se pide.
-                    *   Cierre: Menciona los siguientes pasos, reitera la disposición o lo que se espera del destinatario, si aplica.
-                6.  **Despedida:** Frase de despedida formal (Ej: Sin otro particular por el momento, aprovecho la ocasión para enviarle un cordial saludo. O: Agradezco de antemano su atención y colaboración, quedando a sus apreciables órdenes para cualquier aclaración.).
-                7.  **A T E N T A M E N T E** (Así, en mayúsculas y centrado si es posible, o alineado a la izquierda)
-                8.  (Espacio considerable para firma manuscrita - unas 3-4 líneas en blanco)
-                9.  ${elements.remitente.value.toUpperCase()}
-                10. ${elements.cargoRemitente.value.toUpperCase()}
-                ${(elements.departamentoRemitente.value && elements.departamentoRemitente.value.toLowerCase() !== 'no especificado') ? `11. ${elements.departamentoRemitente.value.toUpperCase()}` : ''}
+                    *   Cierre: Menciona los siguientes pasos o lo que se espera del destinatario, si aplica.
+                6.  **Despedida:** Frase de despedida formal (Ej: Sin otro particular por el momento, aprovecho la ocasión para enviarle un cordial saludo.).
+                7.  **A T E N T A M E N T E**
+                8.
+                9.
+                10.
+                11. ${remitenteNombre.toUpperCase()}
+                12. ${remitenteCargo.toUpperCase()}
+                ${(remitenteDepartamento && remitenteDepartamento.toLowerCase() !== 'no especificado') ? `13. ${remitenteDepartamento.toUpperCase()}` : ''}
 
                 **Instrucciones Adicionales Cruciales:**
                 - Presta máxima atención a la ortografía, gramática y puntuación en español.
                 - El lenguaje debe ser profesional y adecuado para un oficio formal mexicano, según el tono especificado.
                 - El cuerpo del oficio debe ser desarrollado de forma coherente y lógica. No te limites a repetir la entrada; debe ser un texto nuevo y completo.
-                - La fecha debe ser la actual.
-                - Si el departamento del remitente es "No especificado", omítelo en la sección de firma y en el número de oficio si lo usabas ahí.
-                - Devuelve únicamente el texto completo del oficio, sin ningún comentario adicional antes o después. Asegúrate de que cada parte del oficio esté claramente separada por saltos de línea apropiados.
+                - Asegúrate de que cada parte del oficio esté claramente separada por saltos de línea apropiados. Un oficio bien formateado es crucial. Incluye los espacios para firma (líneas 8, 9, 10 deben ser saltos de línea).
+                - Devuelve únicamente el texto completo del oficio, sin ningún comentario adicional antes o después.
                 `;
                 const oficioGenerado = await callGemini(prompt, "generar el oficio completo");
                 if (oficioGenerado) {
@@ -610,8 +618,8 @@
                 } else {
                     renderDocument("// La generación del oficio falló. Revisa los mensajes de error o la consola e inténtalo de nuevo. //");
                 }
-                return oficioGenerado; // Return the result for safeAction
-            }, "Generando Oficio...", null, true, formFieldIds);
+                return oficioGenerado;
+            }, "Generando Oficio...", null, true, requiredFieldsForGenerate);
         });
 
         elements.copyBtn.addEventListener('click', () => {
@@ -629,11 +637,11 @@
 
         elements.summarizeBtn.addEventListener('click', () => {
             safeAction(elements.summarizeBtn, async () => {
-                if (!elements.outputContent.value.trim() || elements.outputContent.value.startsWith("//")) {
+                const oficioTexto = elements.outputContent.value;
+                if (!oficioTexto.trim() || oficioTexto.startsWith("//")) {
                      showModal("Oficio Requerido", "Primero genera un oficio completo para poder crear un resumen.", 'info');
                      return null;
                 }
-                const oficioTexto = elements.outputContent.value;
                 const prompt = `Eres un especialista en comunicación ejecutiva. Crea un resumen ejecutivo conciso y profesional (aproximadamente 100-150 palabras) del siguiente oficio. El resumen debe capturar el propósito principal, los puntos clave y cualquier acción solicitada o conclusión importante.
                 Oficio:
                 ---
@@ -644,8 +652,8 @@
                 if (resumen) {
                     showModal("Resumen Ejecutivo (IA)", `<div class="text-left text-sm whitespace-pre-line p-2 bg-slate-700/50 rounded-md">${resumen}</div><hr class="my-3 border-slate-600"><p class="text-xs text-slate-400">Puedes copiar este resumen desde aquí.</p>`, 'info');
                 }
-                return resumen; // Return the result for safeAction
-            }, "Resumiendo...", null, true, ['outputContent']); // Though outputContent is not a user input field, this ensures it's not empty
+                return resumen;
+            }, "Resumiendo...", null, true, ['outputContent']);
         });
     </script>
     </body>
