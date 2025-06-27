@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Calendario CECAN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    :root {
+        --bg-color: #f4f6fb;
+        --text-color: #222;
+        --primary-color: #1976d2;
+        --primary-hover: #1565c0;
+        --input-bg: #fff;
+        --input-border: #b0bec5;
+        --card-bg: #fff;
+        --danger: #e53935;
+        --gray: #757575;
+        --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+    .container {
+        width: 100%;
+        max-width: 480px;
+        margin: 32px auto;
+        background: var(--card-bg);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 24px 18px 18px 18px;
+        border: 1px solid #e0e0e0;
+    }
+    .logo-wrapper {
+        text-align: center;
+        margin-bottom: 18px;
+    }
+    .logo-wrapper img {
+        max-width: 160px;
+        height: auto;
+    }
+    h1 {
+        text-align: center;
+        color: var(--primary-color);
+        font-size: 1.3rem;
+        margin-bottom: 18px;
+        font-weight: 600;
+    }
+    .form-group {
+        margin-bottom: 16px;
+    }
+    .form-group-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .form-group-row .form-group {
+        flex: 1 1 120px;
+        min-width: 120px;
+        margin-bottom: 0;
+    }
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 0.97rem;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="file"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--input-bg);
+        border: 1.5px solid var(--input-border);
+        color: var(--text-color);
+        border-radius: 7px;
+        box-sizing: border-box;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="file"] {
+        padding: 7px 0;
+    }
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.13);
+    }
+    textarea {
+        resize: vertical;
+        min-height: 90px;
+    }
+    .btn {
+        width: 100%;
+        padding: 13px 0;
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.2s;
+    }
+    .btn:hover, .btn:focus {
+        background: var(--primary-hover);
+    }
+    .btn:disabled {
+        background: #b0bec5;
+        cursor: not-allowed;
+    }
+    footer {
+        text-align: center;
+        margin-top: 22px;
+        font-size: 13px;
+        color: var(--gray);
+    }
+    .otro-input {
+        display: none;
+        margin-top: 10px;
+        width: 100%;
+    }
+    @media (max-width: 600px) {
+        .container {
+            max-width: 98vw;
+            padding: 10px 2vw 12px 2vw;
+            margin: 10px auto;
+        }
+        h1 {
+            font-size: 1.05rem;
+        }
+        .form-group-row {
+            flex-direction: column;
+            gap: 0;
+        }
+        .logo-wrapper img {
+            max-width: 120px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-wrapper">
+            <img src="https://www.nayarit.gob.mx/wp-content/uploads/2021/11/CECAN.png" alt="Logotipo del CECAN">
+        </div>
+        <h1>Registro de Calendario Cultural CECAN</h1>
+        <form id="eventoForm">
+            <div class="form-group">
+                <label for="evento">Evento (Nombre/Título)</label>
+                <input type="text" id="evento" name="evento" required>
+            </div>
+            <div class="form-group">
+                <label for="fechaCompleta">Fecha</label>
+                <input type="date" id="fechaCompleta" name="fechaCompleta" required>
+            </div>
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label for="horaInicio">Hora Inicio</label>
+                    <input type="time" id="horaInicio" name="horaInicio">
+                </div>
+                <div class="form-group">
+                    <label for="horaFin">Hora Fin</label>
+                    <input type="time" id="horaFin" name="horaFin">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tipoActividad">Tipo de Actividad</label>
+                <select id="tipoActividad" name="tipoActividad" onchange="checkOtro(this, 'otroTipoActividadContainer')">
+                    <option value="Exposición">Exposición</option>
+                    <option value="Taller">Taller</option>
+                    <option value="Concierto">Concierto</option>
+                    <option value="Conferencia">Conferencia</option>
+                    <option value="Presentación de Libro">Presentación de Libro</option>
+                    <option value="Proyección de Cine">Proyección de Cine</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <div id="otroTipoActividadContainer" class="otro-input">
+                    <label for="otroTipoActividad">Especificar otro tipo:</label>
+                    <input type="text" id="otroTipoActividad" name="otroTipoActividad">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="lugarRealizacion">Lugar de Realización</label>
+                <select id="lugarRealizacion" name="lugarRealizacion" onchange="checkOtro(this, 'otroLugarContainer')">
+                    <option value="Museo de los Cinco Pueblos">Museo de los Cinco Pueblos</option>
+                    <option value="Centro de Arte Contemporáneo Emilia Ortiz">Centro de Arte Contemporáneo Emilia Ortiz</option>
+                    <option value="Casa Museo Juan Escutia">Casa Museo Juan Escutia</option>
+                    <option value="Casa Museo Amado Nervo">Casa Museo Amado Nervo</option>
+                    <option value="Centro Cultural Bellavista">Centro Cultural Bellavista</option>
+                    <option value="Biblioteca Solón Argüello">Biblioteca Solón Argüello</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <div id="otroLugarContainer" class="otro-input">
+                    <label for="otroLugarRealizacion">Especificar otro lugar:</label>
+                    <input type="text" id="otroLugarRealizacion" name="otroLugarRealizacion">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="areaResponsable">Área Responsable</label>
+                <select id="areaResponsable" name="areaResponsable" onchange="checkOtro(this, 'otroAreaContainer')">
+                    <option value="Museo de los Cinco Pueblos (M5P)">Museo de los Cinco Pueblos (M5P)</option>
+                    <option value="Centro de Arte Contemporáneo Emilia Ortiz (CACEO)">Centro de Arte Contemporáneo Emilia Ortiz (CACEO)</option>
+                    <option value="Casa Museo Juan Escutia (CMJE)">Casa Museo Juan Escutia (CMJE)</option>
+                    <option value="Casa Museo Amado Nervo (CMAN)">Casa Museo Amado Nervo (CMAN)</option>
+                    <option value="Centro Cultural Bellavista (CCB)">Centro Cultural Bellavista (CCB)</option>
+                    <option value="Biblioteca Solón Argüello">Biblioteca Solón Argüello</option>
+                    <option value="CEDART- Amado Nervo">CEDART- Amado Nervo</option>
+                    <option value="Escuela Estatal de Bellas Artes (EEBA)">Escuela Estatal de Bellas Artes (EEBA)</option>
+                    <option value="EAB">EAB</option>
+                    <option value="Escuela de Música del Siglo XXI (EMSXXI)">Escuela de Música del Siglo XXI (EMSXXI)</option>
+                    <option value="MO">MO</option>
+                    <option value="Escuela Superior de Música (ESM)">Escuela Superior de Música (ESM)</option>
+                    <option value="DFFME">DFFME</option>
+                    <option value="DCyEC">DCyEC</option>
+                    <option value="DC">DC</option>
+                    <option value="DJ">DJ</option>
+                    <option value="DA">DA</option>
+                    <option value="DG">DG</option>
+                    <option value="DP">DP</option>
+                    <option value="DPyD">DPyD</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <div id="otroAreaContainer" class="otro-input">
+                    <label for="otroAreaResponsable">Especificar otra área:</label>
+                    <input type="text" id="otroAreaResponsable" name="otroAreaResponsable">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="coberturaFotografica">¿Necesita Cobertura Fotográfica?</label>
+                <select id="coberturaFotografica" name="coberturaFotografica">
+                    <option value="No" selected>No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="necesitaDiseno">¿Necesita diseño?</label>
+                <select id="necesitaDiseno" name="necesitaDiseno">
+                    <option value="No" selected>No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="manualDiseno">Cargar manual de diseño (Word o PDF)</label>
+                <input type="file" id="manualDiseno" name="manualDiseno" accept=".doc,.docx,.pdf">
+            </div>
+            <div class="form-group">
+                <label for="notas">Notas (Descripción/Detalles adicionales)</label>
+                <textarea id="notas" name="notas" placeholder="Ejemplo: Si el evento es en varios días, escríbelo aquí. También puedes agregar información extra relevante para el evento o para redes sociales."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="aprobacionJefe">Aprobación Jefe</label>
+                <select id="aprobacionJefe" name="aprobacionJefe">
+                    <option value="Pendiente de Aprobación">Pendiente de Aprobación</option>
+                    <option value="Aprobado por Jefe">Aprobado por Jefe</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Registrar Evento</button>
+        </form>
+        <footer>
+            <p>Herramienta creada por el Lic. <strong>Erick Téllez</strong></p>
+        </footer>
+    </div>
+    <script>
+    function checkOtro(selectElement, containerId) {
+        const container = document.getElementById(containerId);
+        if (selectElement.value === 'Otro') {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+    document.getElementById('necesitaDiseno').addEventListener('change', function() {
+        const manualInput = document.getElementById('manualDiseno');
+        if (this.value === 'Sí') {
+            manualInput.disabled = false;
+        } else {
+            manualInput.value = '';
+            manualInput.disabled = true;
+        }
+    });
+    window.onload = function() {
+        const manualInput = document.getElementById('manualDiseno');
+        if (document.getElementById('necesitaDiseno').value === 'No') {
+            manualInput.disabled = true;
+        }
+    };
+    document.getElementById('eventoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+        const manualInput = document.getElementById('manualDiseno');
+        const archivo = manualInput.files[0];
+        function enviarDatos(extraData = {}) {
+            const currentEventData = {
+                evento: document.getElementById('evento').value.trim(),
+                fechaCompleta: document.getElementById('fechaCompleta').value,
+                horaInicio: document.getElementById('horaInicio').value,
+                horaFin: document.getElementById('horaFin').value,
+                tipoActividad: document.getElementById('tipoActividad').value === 'Otro' ? document.getElementById('otroTipoActividad').value.trim() : document.getElementById('tipoActividad').value,
+                lugarRealizacion: document.getElementById('lugarRealizacion').value === 'Otro' ? document.getElementById('otroLugarRealizacion').value.trim() : document.getElementById('lugarRealizacion').value,
+                areaResponsable: document.getElementById('areaResponsable').value === 'Otro' ? document.getElementById('otroAreaResponsable').value.trim() : document.getElementById('areaResponsable').value,
+                coberturaFotografica: document.getElementById('coberturaFotografica').value,
+                notas: document.getElementById('notas').value.trim(),
+                aprobacionJefe: document.getElementById('aprobacionJefe').value,
+                necesitaDiseno: document.getElementById('necesitaDiseno').value,
+                nombreManualDiseno: extraData.nombreManualDiseno || "",
+                archivoManualDiseno: extraData.archivoManualDiseno || ""
+            };
+            google.script.run
+                .withSuccessHandler(function(msg) {
+                    alert(msg);
+                    document.getElementById('eventoForm').reset();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Registrar Evento';
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error: ' + error.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Registrar Evento';
+                })
+                .registrarNuevaActividad(currentEventData);
+        }
+        if (archivo) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                enviarDatos({
+                    nombreManualDiseno: archivo.name,
+                    archivoManualDiseno: event.target.result
+                });
+            };
+            reader.readAsDataURL(archivo);
+        } else {
+            enviarDatos();
+        }
+    });
+    </script>
+</body>
+</html> 
