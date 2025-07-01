@@ -1,0 +1,319 @@
+<style>
+  :root {
+    --primary-color: #004d40; /* Verde oscuro CECAN */
+    --secondary-color: #80cbc4; /* Verde claro */
+    --accent-color: #ffab40;  /* Naranja/ámbar */
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --border-color: #ddd;
+    --danger-color: #d32f2f;
+    --success-color: #388e3c;
+    --warning-color: #fbc02d;
+    --info-color: #1976d2;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 1300px; /* Aumentado para más espacio */
+    margin: 20px auto; /* Añadido margen superior e inferior */
+    padding: 20px;
+    background-color: #fff; /* Fondo blanco para el contenedor principal */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Sombra más pronunciada */
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 30px; /* Reducido ligeramente */
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--primary-color);
+  }
+
+  header h1 {
+    margin: 0 0 5px 0; /* Ajuste de margen */
+    font-size: 2em;
+  }
+  header p {
+    margin: 0;
+    font-size: 1em;
+    color: var(--text-color);
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 2.5fr; /* Ajuste para dar más espacio a la tabla */
+    gap: 30px; /* Reducido ligeramente */
+  }
+
+  .form-container, .table-container {
+    background: #fff;
+    padding: 20px; /* Reducido ligeramente */
+    border-radius: 8px;
+    /* La sombra ahora está en .container, se puede quitar o reducir aquí */
+     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px; /* Añadido margen inferior */
+    font-size: 1.5em;
+  }
+
+  .form-group {
+    margin-bottom: 18px; /* Aumentado ligeramente */
+  }
+
+  .form-group-row {
+    display: flex;
+    gap: 15px;
+  }
+
+  .form-group-row .form-group {
+    flex: 1;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px; /* Aumentado ligeramente */
+    font-weight: 600;
+    font-size: 14px;
+    color: #555; /* Color de etiqueta más suave */
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px; /* Bordes más redondeados */
+    box-sizing: border-box;
+    font-size: 14px; /* Tamaño de fuente consistente */
+    transition: border-color 0.2s ease-in-out;
+  }
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+  }
+
+  input[type="file"] {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 13px;
+  }
+
+  button {
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500; /* Peso de fuente */
+    transition: background-color 0.2s, box-shadow 0.2s;
+    display: inline-flex; /* Para alinear íconos si se añaden */
+    align-items: center;
+    justify-content: center;
+  }
+
+  button:hover {
+    background-color: #00382e; /* Un poco más oscuro */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .table-wrapper {
+    max-height: 650px; /* Aumentado para más visibilidad */
+    overflow-y: auto;
+    border: 1px solid var(--border-color); /* Borde alrededor del wrapper */
+    border-radius: 5px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 10px 12px; /* Ajuste de padding */
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    font-size: 14px; /* Tamaño de fuente de celdas */
+    vertical-align: middle; /* Alinear verticalmente */
+  }
+
+  th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    color: var(--primary-color); /* Color de cabecera */
+    position: sticky; /* Cabeceras pegajosas */
+    top: 0;
+    z-index: 10;
+  }
+
+  tr:hover td { /* Efecto hover en filas */
+    background-color: #f1f1f1;
+  }
+
+  .status-badge {
+    padding: 5px 10px; /* Aumentado padding */
+    border-radius: 15px; /* Más redondeado */
+    color: #fff;
+    font-size: 11px; /* Reducido ligeramente */
+    font-weight: 700; /* Más negrita */
+    text-transform: uppercase;
+    letter-spacing: 0.5px; /* Espaciado de letras */
+    display: inline-block; /* Para que el padding funcione correctamente */
+    text-align: center;
+    min-width: 80px; /* Ancho mínimo para consistencia */
+  }
+
+  .status-Pendiente { background-color: var(--info-color); }
+  .status-Aprobado { background-color: var(--success-color); }
+  .status-Conflicto { background-color: var(--warning-color); color: var(--text-color); }
+  .status-Pasado { background-color: #757575; }
+  .status-Cancelado { background-color: var(--danger-color); }
+  .status-SemanaActual { background-color: var(--accent-color); color: var(--text-color); }
+
+  .actions-cell {
+    white-space: nowrap; /* Evitar que los botones se rompan en dos líneas */
+  }
+  .actions-cell button {
+    margin-right: 6px; /* Espacio entre botones */
+    padding: 6px 10px; /* Padding más pequeño para botones de acción */
+    font-size: 13px; /* Tamaño de fuente más pequeño */
+    font-weight: 500;
+  }
+  .actions-cell button:last-child {
+    margin-right: 0;
+  }
+
+  .btn-approve { background-color: var(--success-color); }
+  .btn-approve:hover { background-color: #2e7d32; }
+
+  .btn-delete { background-color: var(--danger-color); }
+  .btn-delete:hover { background-color: #c62828; }
+
+  .loader {
+    text-align: center;
+    padding: 25px;
+    font-style: italic;
+    color: #777; /* Color más oscuro */
+    font-size: 1.1em;
+  }
+
+  .filter-controls {
+    display: flex;
+    gap: 15px; /* Aumentado gap */
+    margin-bottom: 20px; /* Aumentado margen inferior */
+    align-items: center; /* Alinear verticalmente */
+  }
+
+  .filter-controls input,
+  .filter-controls select {
+    padding: 9px 12px; /* Aumentado padding */
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    font-size: 14px;
+  }
+  .filter-controls input {
+    flex-grow: 1; /* Permitir que el input de búsqueda crezca */
+  }
+
+  /* Estilos para Notificaciones (Toast) */
+  .toast-notification {
+    position: fixed;
+    bottom: 25px; /* Aumentado */
+    right: 25px;  /* Aumentado */
+    padding: 16px 22px; /* Aumentado padding */
+    border-radius: 6px; /* Redondeado consistente */
+    color: #fff;
+    opacity: 0;
+    transform: translateY(25px); /* Aumentado */
+    transition: all 0.35s cubic-bezier(0.215, 0.61, 0.355, 1); /* Transición más suave */
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+    font-size: 15px; /* Tamaño de fuente */
+    display: flex; /* Para íconos futuros */
+    align-items: center;
+  }
+
+  .toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .toast-notification.success { background-color: var(--success-color); }
+  .toast-notification.error { background-color: var(--danger-color); }
+
+  /* Media Queries para Responsividad */
+  @media (max-width: 1024px) { /* Ajuste para tablets */
+    main {
+      grid-template-columns: 1fr; /* Apilar en tablets y móviles */
+    }
+    .table-container {
+      margin-top: 30px; /* Espacio cuando se apila */
+    }
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      margin: 10px;
+      padding: 15px;
+    }
+    header h1 {
+      font-size: 1.8em;
+    }
+    h2 {
+      font-size: 1.3em;
+    }
+    .form-group-row {
+      flex-direction: column; /* Apilar campos de fecha/hora */
+      gap: 0; /* Quitar gap cuando se apilan */
+    }
+    .form-group-row .form-group {
+      margin-bottom: 18px; /* Mantener margen inferior */
+    }
+    .filter-controls {
+      flex-direction: column; /* Apilar filtros */
+      align-items: stretch; /* Estirar elementos */
+    }
+    .filter-controls input,
+    .filter-controls select {
+      width: 100%; /* Ancho completo para filtros */
+    }
+    .actions-cell button { /* Botones más grandes y apilados si es necesario */
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .actions-cell button:last-child {
+        margin-bottom: 0;
+    }
+  }
+</style>
