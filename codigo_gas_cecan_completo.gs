@@ -32,12 +32,13 @@ function setupTodoDesdeCero() {
 // ================== VARIABLES Y MAPAS ==================
 const CANONICAL_HEADERS = [
   'ID Evento', 'Timestamp', 'Ultima fecha de verificación', 'Fecha Completa', 'Hora Inicio', 'Hora Fin',
-  'Evento (Nombre/Título)', 'Notas', 'Tipo de Actividad', 'Lugar de Realización',
-  'Area Responsable', 'Aprobación Jefe', 'Estado Interno', 'Cobertura Fotográfica', 'URL Manual de Diseño'
+  'Evento (Nombre/Título)', 'Notas', 'Tipo de Actividad', 'Lugar de Realización', 'Area Responsable',
+  'Aprobación Jefe', 'Estado Interno', 'Cobertura Fotográfica', 'Necesita Diseño', 'URL Manual de Diseño'
 ];
 const HEADER_MAP = {
   'ID Evento': 'idEvento',
   'Fecha Completa': 'fechaCompleta',
+  'Necesita Diseño': 'necesitaDiseno',
   'Hora Inicio': 'horaInicio',
   'Hora Fin': 'horaFin',
   'Evento (Nombre/Título)': 'evento',
@@ -50,7 +51,7 @@ const HEADER_MAP = {
   'Timestamp': 'timestamp',
   'Estado Interno': 'estadoInterno',
   'Cobertura Fotográfica': 'coberturaFotografica',
-  'URL Manual de Diseño': 'urlManualDiseno'
+  'URL Manual de Diseño': 'urlManualDiseno',
 };
 const ARCHIVE_SHEET_NAME = "Archivo";
 
@@ -62,7 +63,31 @@ function doGet() {
 
 // ========== REGISTRO Y ARCHIVO DE EVENTOS ==========
 
+const SUPERVISOR_EMAILS = [
+  "ericktr1994@gmail.com", // Cambia por los correos reales
+  // "otro@correo.com"
+];
+
 function registrarNuevaActividad(eventData) {
+  // Validación de campos requeridos
+  const requiredFields = ["evento", "fechaCompleta", "tipoActividad", "lugarRealizacion", "areaResponsable"];
+  for (let field of requiredFields) {
+    if (!eventData[field] || String(eventData[field]).trim() === "") {
+      throw new Error(`El campo obligatorio '${field}' está vacío.`);
+    }
+  }
+  // Validación de horas
+  if (eventData.horaInicio && eventData.horaFin && eventData.horaInicio >= eventData.horaFin) {
+    throw new Error("La hora de inicio debe ser menor que la hora de fin.");
+  }
+  // Control de duplicados (por ID o coincidencia exacta de evento, fecha y hora)
+  const existingEvents = getDatosCalendario();
+  if (existingEvents.some(ev =>
+    (ev.idEvento && eventData.idEvento && ev.idEvento === eventData.idEvento) ||
+    (ev.evento === eventData.evento && ev.fechaCompleta === formatToSheetDate_(eventData.fechaCompleta) && ev.horaInicio === eventData.horaInicio && ev.horaFin === eventData.horaFin)
+  )) {
+    throw new Error("Este evento ya ha sido registrado previamente.");
+  }
   try {
     // Guardar archivo en Drive si existe
     let urlManualDiseno = '';
@@ -324,6 +349,7 @@ function mapObjectToRow_(dataObject, headers) {
   dataObject.horaInicio = dataObject.horaInicio || "";
   dataObject.horaFin = dataObject.horaFin || "";
   dataObject.coberturaFotografica = dataObject.coberturaFotografica || "No";
+  dataObject.necesitaDiseno = dataObject.necesitaDiseno || "No";
   const notesPlaceholder = "Quién imparte el taller, o toda la información que se considere para un copy o pauta para redes sociales.";
   dataObject.notas = dataObject.notas || notesPlaceholder;
   dataObject.estadoInterno = dataObject.estadoInterno || "Aprobado";
@@ -340,7 +366,6 @@ function generateUniqueId_() {
 }
 
 function enviarNotificacionRegistro(eventData) {
-  const supervisorEmail = "ericktr1994@gmail.com"; // Cambia por el correo real
   const subject = `Nuevo Evento Registrado: ${eventData.evento}`;
   const body = `Se ha registrado un nuevo evento:\n\n` +
     `ID: ${eventData.idEvento || 'N/A'}\n` +
@@ -355,14 +380,22 @@ function enviarNotificacionRegistro(eventData) {
     `Cobertura Fotográfica: ${eventData.coberturaFotografica || 'N/A'}\n\n` +
     `Estado Interno: ${eventData.estadoInterno || 'N/A'}\n\n` +
     `Por favor, revise el calendario para más detalles.`;
-  MailApp.sendEmail(supervisorEmail, subject, body);
+  SUPERVISOR_EMAILS.forEach(email => MailApp.sendEmail(email, subject, body));
 }
 
 function enviarNotificacionConflicto(eventData) {
-  const supervisorEmail = "ericktr1994@gmail.com"; // Cambia por el correo real
+  // Buscar eventos en conflicto
+  const conflicto = verificarConflictos(eventData);
+  let conflictDetails = '';
+  if (conflicto && conflicto.hasConflict && conflicto.conflictingEvents.length > 0) {
+    conflictDetails = '\n\nEventos en conflicto:';
+    conflicto.conflictingEvents.forEach(ev => {
+      conflictDetails += `\n- ${ev.evento} (${ev.fechaCompleta} ${ev.horaInicio || ''}-${ev.horaFin || ''})`;
+    });
+  }
   const subject = `Alerta de Conflicto: Se ha forzado el registro del evento "${eventData.evento}"`;
-  const body = `Se ha registrado un nuevo evento que entra en conflicto de fecha con otros existentes. Se requiere revisión.`;
-  MailApp.sendEmail(supervisorEmail, subject, body);
+  const body = `Se ha registrado un nuevo evento que entra en conflicto de fecha con otros existentes. Se requiere revisión.` + conflictDetails;
+  SUPERVISOR_EMAILS.forEach(email => MailApp.sendEmail(email, subject, body));
 }
 
 /*
