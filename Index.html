@@ -1,136 +1,609 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <base target="_top">
-  <title>Sistema de Gestión de Eventos - CECAN</title>
-  <?!= include('CSS'); ?>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Eventos CECAN</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #4f46e5; /* indigo-600 */
+        --secondary-color: #f1f5f9; /* slate-100 */
+        --text-primary: #1e293b; /* slate-800 */
+        --text-secondary: #64748b; /* slate-500 */
+        --border-color: #cbd5e1; /* slate-300 */
+        --approved-bg: #dcfce7; --approved-text: #166534;
+        --pending-bg: #fef9c3; --pending-text: #854d0e;
+        --conflict-bg: #fee2e2; --conflict-text: #991b1b;
+        --current-bg: #dbeafe; --current-text: #1e40af;
+        --past-bg: #f3f4f6; --past-text: #374151;
+      }
+      .status-pill { @apply px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full; }
+      .status-Aprobado { background-color: var(--approved-bg); color: var(--approved-text); }
+      .status-Pendiente { background-color: var(--pending-bg); color: var(--pending-text); }
+      .status-Conflicto { background-color: var(--conflict-bg); color: var(--conflict-text); }
+      .status-SemanaActual { background-color: var(--current-bg); color: var(--current-text); }
+      .status-Pasado { background-color: var(--past-bg); color: var(--past-text); }
+      .status-Cancelado { background-color: var(--conflict-bg); color: var(--conflict-text); }
+      .status-Eliminado { background-color: var(--past-bg); color: var(--text-secondary); border: 1px dashed var(--text-secondary); }
+
+      .form-input-base { @apply flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[var(--text-primary)] focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] border border-[var(--border-color)] bg-white focus:border-[var(--primary-color)] h-11 placeholder:text-[var(--text-secondary)] px-4 text-sm font-normal leading-normal; }
+      .form-input-base.error { @apply border-red-500 focus:ring-red-500 focus:border-red-500; }
+      .form-label { @apply text-[var(--text-primary)] text-sm font-medium leading-normal pb-2; }
+      .toast { @apply fixed bottom-5 right-5 z-50 flex items-center p-4 rounded-lg shadow-lg text-white; }
+      .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+<!-- Ignorando importmap y index.tsx según lo acordado -->
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h1>Sistema de Gestión de Eventos Culturales</h1>
-      <p>Consejo Estatal para la Cultura y las Artes de Nayarit</p>
-    </header>
+<body class="bg-[var(--secondary-color)]" style="font-family: 'Inter', sans-serif;">
 
-    <main>
-      <div class="form-container">
-        <h2>Registrar Nuevo Evento</h2>
-        <form id="event-form">
-          <div class="form-group">
-            <label for="evento-nombre">Nombre del Evento</label>
-            <input type="text" id="evento-nombre" name="Evento (Nombre/Título)" required>
-          </div>
-          <div class="form-group-row">
-            <div class="form-group">
-              <label for="fecha-completa">Fecha</label>
-              <input type="date" id="fecha-completa" name="Fecha Completa" required>
-            </div>
-            <div class="form-group">
-              <label for="hora-inicio">Hora Inicio</label>
-              <input type="time" id="hora-inicio" name="Hora Inicio" required>
-            </div>
-            <div class="form-group">
-              <label for="hora-fin">Hora Fin</label>
-              <input type="time" id="hora-fin" name="Hora Fin" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="tipo-actividad">Tipo de Actividad</label>
-            <input type="text" id="tipo-actividad" name="Tipo de Actividad">
-          </div>
-          <div class="form-group">
-            <label for="lugar-realizacion">Lugar de Realización</label>
-            <input type="text" id="lugar-realizacion" name="Lugar de Realización">
-          </div>
-          <div class="form-group">
-            <label for="ubicacion-especifica">Ubicación Específica</label>
-            <input type="text" id="ubicacion-especifica" name="Ubicacion Especifica">
-          </div>
-          <div class="form-group">
-            <label for="area-responsable">Área Responsable</label>
-            <select id="area-responsable" name="Area Responsable">
-                <option value="">-- Seleccione un área --</option>
-                <option>Biblioteca Pública Estatal Solón Argüello</option>
-                <option>Escuela Superior de Música</option>
-                <option>Escuela de Música Siglo XXI</option>
-                <option>Casa Museo “Juan Escutia”</option>
-                <option>Casa Museo “Amado Nervo”</option>
-                <option>Museo del Origen de Mexcaltitán</option>
-                <option>Escuela Estatal de Bellas Artes</option>
-                <option>Centro de Arte Contemporáneo “Emilia Ortiz”</option>
-                <option>Museo de los Cinco Pueblos</option>
-                <option>Centro Cultural en Bellavista</option>
-                <option>Amado Nervo CEDART</option>
-                <option>Programa de Desarrollo Cultura Infantil</option>
-                <option>Programa de Fomento a la Lectura y Literatura</option>
-                <option>Programa de Apoyo a las Culturas Municipales y Comunitarias (PACMyC)</option>
-                <option>Programa de Estímulo a la Creación y Desarrollo Artístico (PECDA)</option>
-                <option>Fondo Nacional para el Fomento de las Artesanías (FONART)</option>
-            </select>
-          </div>
-          <div class="form-group">
-              <label for="cobertura-fotografica">Cobertura Fotográfica</label>
-              <select id="cobertura-fotografica" name="Cobertura Fotográfica">
-                  <option value="No">No</option>
-                  <option value="Sí">Sí</option>
-              </select>
-          </div>
-          <div class="form-group">
-              <label for="necesita-diseno">Necesita Diseño</label>
-              <select id="necesita-diseno" name="Necesita Diseño">
-                  <option value="No">No</option>
-                  <option value="Sí">Sí</option>
-              </select>
-          </div>
-          <div class="form-group">
-              <label for="notas">Notas Adicionales</label>
-              <textarea id="notas" name="Notas" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="file-upload">Manual de Diseño (Opcional)</label>
-            <input type="file" id="file-upload">
-          </div>
-
-          <button type="submit" id="submit-button">Registrar Evento</button>
-        </form>
-      </div>
-
-      <div class="table-container">
-        <h2>Listado de Eventos</h2>
-        <div class="filter-controls">
-            <input type="text" id="search-input" placeholder="Buscar por nombre...">
-            <select id="filter-status">
-                <option value="">Todos los Estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Aprobado">Aprobado</option>
-                <option value="Cancelado">Cancelado</option>
-                <option value="Conflicto">Conflicto</option>
-                <option value="Pasado">Pasado</option>
-                <option value="SemanaActual">Semana Actual</option>
-            </select>
+    <div id="app-container" class="relative flex size-full min-h-screen flex-col bg-[var(--secondary-color)]">
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[var(--border-color)] bg-white px-6 md:px-10 py-3">
+        <div class="flex items-center gap-3 text-[var(--text-primary)]">
+           <div class="size-7 text-[var(--primary-color)]">
+                <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.527-1.973 6.012 6.012 0 011.912 2.706C16.27 8.573 16 9.244 16 10c0 .756-.27 1.427-.668 1.973a6.012 6.012 0 01-1.912 2.706C13.488 14.27 13.026 14 12.5 14a1.5 1.5 0 01-1.5-1.5V12a2 2 0 00-4 0 2 2 0 01-1.527 1.973 6.012 6.012 0 01-1.912-2.706C3.73 11.427 4 10.756 4 10c0-.756.27-1.427.668-1.973z"></path></svg>
+           </div>
+            <h1 class="text-[var(--text-primary)] text-xl font-bold leading-tight tracking-[-0.015em]">
+                Sistema de Gestión de Eventos - CECAN
+            </h1>
         </div>
-        <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Estado</th>
-                  <th>Evento</th>
-                  <th>Fecha</th>
-                  <th>Horario</th>
-                  <th>Área Responsable</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="events-table-body">
-                <!-- Las filas se insertarán aquí por JavaScript -->
-              </tbody>
-            </table>
+        <div class="flex items-center space-x-2">
+            <span class="form-label pb-0">Usuario:</span>
+            <span id="user-info-display" class="text-[var(--text-primary)] text-sm font-medium">Cargando...</span>
         </div>
-        <div id="loader" class="loader">Cargando eventos...</div>
-      </div>
-    </main>
-  </div>
+      </header>
 
-  <?!= include('JavaScript'); ?>
-</body>
-</html>
+      <main class="px-4 md:px-10 lg:px-20 flex flex-1 justify-center py-8">
+        <div class="flex flex-col w-full max-w-5xl gap-8">
+            <!-- Event Form Section -->
+            <section class="bg-white p-6 rounded-xl shadow-lg h-full overflow-y-auto">
+              <h2 class="text-[var(--text-primary)] tracking-tight text-2xl font-bold leading-tight mb-6">Registrar Nuevo Evento</h2>
+              <form id="event-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="col-span-1 md:col-span-2"><label for="name" class="form-label">Nombre del Evento</label><input type="text" name="name" id="name" class="form-input-base" placeholder="E.g., Concierto de Verano" required><p id="error-name" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div><label for="date" class="form-label">Fecha</label><input type="date" name="date" id="date" class="form-input-base" required><p id="error-date" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div><label for="venue" class="form-label">Lugar de Realización</label><input type="text" name="venue" id="venue" class="form-input-base" placeholder="E.g., Teatro del Pueblo" required><p id="error-venue" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div><label for="startTime" class="form-label">Hora Inicio</label><input type="time" name="startTime" id="startTime" value="09:00" class="form-input-base" required><p id="error-startTime" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div><label for="endTime" class="form-label">Hora Fin</label><input type="time" name="endTime" id="endTime" value="10:00" class="form-input-base" required><p id="error-endTime" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div class="md:col-span-2"><label for="activityType" class="form-label">Tipo de Actividad</label><select id="activityType" name="activityType" class="form-input-base" required><option value="">Seleccione un tipo...</option></select><p id="error-activityType" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div class="md:col-span-2"><label for="responsibleArea" class="form-label">Área Responsable</label><select id="responsibleArea" name="responsibleArea" class="form-input-base" required><option value="">Seleccione un área...</option></select><p id="error-responsibleArea" class="mt-1 text-xs text-red-600 hidden"></p></div>
+                 <div><label for="photoCoverage" class="form-label">Cobertura Fotográfica</label><select id="photoCoverage" name="photoCoverage" class="form-input-base"><option value="No">No</option><option value="Sí">Sí</option></select></div>
+                 <div><label for="designNeeded" class="form-label">Necesita Diseño Gráfico</label><select id="designNeeded" name="designNeeded" class="form-input-base"><option value="No">No</option><option value="Sí">Sí</option></select></div>
+                 <div id="design-file-section" class="md:col-span-2 hidden"><p class="form-label">Manual de Diseño</p><div id="drop-zone" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 rounded-lg transition-colors border-[var(--border-color)] border-dashed hover:border-gray-400"><div class="space-y-1 text-center"><svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"></path></svg><div class="flex text-sm text-gray-600"><label for="designFile" class="relative cursor-pointer bg-white rounded-md font-medium text-[var(--primary-color)] hover:text-indigo-700 focus-within:outline-none"><span>Carga un archivo</span><input id="designFile" name="designFile" type="file" class="sr-only" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip"></label><p class="pl-1">o arrástralo aquí</p></div><p class="text-xs text-gray-500">PDF, Word, PNG, JPG, ZIP hasta 10MB</p></div></div><div id="file-info" class="mt-2 text-sm text-gray-700 hidden"></div></div>
+                 <div class="col-span-1 md:col-span-2"><label for="notes" class="form-label">Notas / Descripción</label><textarea id="notes" name="notes" rows="4" class="form-input-base resize-y p-3" placeholder="Añadir detalles adicionales..."></textarea></div>
+                 <div class="flex justify-end col-span-1 md:col-span-2 mt-2"><button type="submit" id="submit-button" class="flex min-w-[150px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-5 bg-[var(--primary-color)] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-indigo-700 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed">Registrar Evento</button></div>
+              </form>
+            </section>
+
+            <!-- Event Table Section -->
+            <section id="event-table-section" class="bg-white p-6 rounded-xl shadow-lg h-full flex flex-col">
+                 <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-[var(--text-primary)] text-2xl font-bold leading-tight tracking-tight">Eventos Programados</h2>
+                    <div class="relative w-full sm:w-72">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg></div>
+                        <input type="text" id="search-input" placeholder="Buscar eventos..." class="form-input-base pl-10">
+                    </div>
+                </div>
+                <div class="overflow-x-auto flex-grow @container">
+                    <table class="w-full min-w-[700px]">
+                        <thead class="bg-[var(--secondary-color)]">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider">Estado</th>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider">Evento</th>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider @lg:table-cell hidden">Fecha</th>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider @lg:table-cell hidden">Horario</th>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider @2xl:table-cell hidden">Área Responsable</th>
+                                <th class="px-4 py-3 text-left text-[var(--text-primary)] text-xs font-medium uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="event-table-body" class="divide-y divide-[var(--border-color)]">
+                            <!-- Rows will be injected by JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="table-placeholder" class="text-center p-12"></div>
+                </div>
+                <!-- Pagination -->
+                <div id="pagination-controls" class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between border-t border-[var(--border-color)] px-4 py-3">
+                    <div><p class="text-sm text-[var(--text-secondary)]">Página <span id="current-page-span" class="font-medium text-[var(--text-primary)]">1</span> de <span id="total-pages-span" class="font-medium text-[var(--text-primary)]">1</span></p></div>
+                    <div><nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button id="prev-page-btn" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border-color)] bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+                        <button id="next-page-btn" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border-color)] bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4-4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
+                    </nav></div>
+                </div>
+            </section>
+        </div>
+      </main>
+
+      <div id="toast-container"></div>
+    </div>
+
+<script>
+// --- Inicio de la estructura EventManagerApp ---
+/**
+ * @namespace EventManagerApp
+ * @description Objeto principal que encapsula toda la lógica, estado y utilidades de la aplicación de gestión de eventos.
+ */
+const EventManagerApp = {
+  // --- ESTADO DE LA APLICACIÓN ---
+  /**
+   * @memberof EventManagerApp
+   * @property {object} state - Almacena el estado dinámico de la aplicación.
+   * @property {object} state.userInfo - Información del usuario activo.
+   * @property {string|null} state.userInfo.email - Email del usuario.
+   * @property {boolean} state.userInfo.isAdmin - Indica si el usuario es administrador.
+   * @property {string} state.userInfo.name - Nombre para mostrar del usuario.
+   * @property {number} state.currentPage - Página actual de la lista de eventos.
+   * @property {number} state.totalPages - Número total de páginas de eventos.
+   * @property {boolean} state.isLoading - Indica si la aplicación está cargando datos (ej. eventos).
+   * @property {boolean} state.isSubmitting - Indica si el formulario de evento se está enviando.
+   * @property {Array<object>} state.currentEvents - Eventos filtrados de la página actual (después de búsqueda en cliente).
+   * @property {Array<object>} state.allEventsOnPage - Todos los eventos de la página actual tal como vienen del servidor.
+   * @property {number} state.itemsPerPage - Número de eventos a mostrar por página.
+   * @property {object} state.formErrors - Almacena los errores de validación del formulario actual. Clave: fieldId, Valor: mensaje de error.
+   */
+  state: {
+    userInfo: {
+      email: null,
+      isAdmin: false,
+      name: 'Usuario'
+    },
+    currentPage: 1,
+    totalPages: 0,
+    isLoading: true,
+    isSubmitting: false,
+    currentEvents: [],
+    allEventsOnPage: [],
+    itemsPerPage: 8,
+    formErrors: {}
+  },
+
+  // --- CONFIGURACIÓN DEL CLIENTE (IDs del DOM, etc.) ---
+  /**
+   * @memberof EventManagerApp
+   * @property {object} config - Almacena configuraciones fijas de la aplicación, principalmente IDs de elementos DOM y listas de campos.
+   * @property {string} config.userInfoDisplayId - ID del elemento para mostrar información del usuario.
+   * @property {string} config.eventFormId - ID del formulario de eventos.
+   * @property {string} config.submitButtonId - ID del botón de envío del formulario.
+   * @property {string} config.tableBodyId - ID del cuerpo de la tabla de eventos.
+   * @property {string} config.searchInputId - ID del campo de búsqueda de eventos.
+   * @property {string} config.tablePlaceholderId - ID del contenedor para mensajes de "cargando" o "sin eventos".
+   * @property {string} config.paginationControlsId - ID del contenedor de los controles de paginación.
+   * @property {string} config.currentPageSpanId - ID del span para mostrar la página actual.
+   * @property {string} config.totalPagesSpanId - ID del span para mostrar el total de páginas.
+   * @property {string} config.prevPageButtonId - ID del botón de página anterior.
+   * @property {string} config.nextPageButtonId - ID del botón de página siguiente.
+   * @property {string} config.designNeededSelectId - ID del select "Necesita Diseño".
+   * @property {string} config.designFileSectionId - ID de la sección para subir archivo de diseño.
+   * @property {string} config.dropZoneId - ID de la zona para arrastrar y soltar archivos.
+   * @property {string} config.designFileInputId - ID del input tipo file para diseño.
+   * @property {string} config.fileInfoId - ID del div para mostrar información del archivo seleccionado.
+   * @property {string} config.toastContainerId - ID del contenedor de notificaciones toast.
+   * @property {string} config.responsibleAreaSelectId - ID del select de área responsable.
+   * @property {string} config.activityTypeSelectId - ID del select de tipo de actividad.
+   * @property {string[]} config.formFieldIds - Array con los IDs de los campos del formulario a validar.
+   */
+  config: {
+    userInfoDisplayId: 'user-info-display',
+    eventFormId: 'event-form',
+    submitButtonId: 'submit-button',
+    tableBodyId: 'event-table-body',
+    searchInputId: 'search-input',
+    tablePlaceholderId: 'table-placeholder',
+    paginationControlsId: 'pagination-controls',
+    currentPageSpanId: 'current-page-span',
+    totalPagesSpanId: 'total-pages-span',
+    prevPageButtonId: 'prev-page-btn',
+    nextPageButtonId: 'next-page-btn',
+    designNeededSelectId: 'designNeeded',
+    designFileSectionId: 'design-file-section',
+    dropZoneId: 'drop-zone',
+    designFileInputId: 'designFile',
+    fileInfoId: 'file-info',
+    toastContainerId: 'toast-container',
+    responsibleAreaSelectId: 'responsibleArea',
+    activityTypeSelectId: 'activityType',
+    formFieldIds: ['name', 'date', 'venue', 'startTime', 'endTime', 'activityType', 'responsibleArea']
+  },
+
+  // --- ELEMENTOS DEL DOM CACHADOS ---
+  /**
+   * @memberof EventManagerApp
+   * @property {object} dom - Almacena referencias cacheadas a elementos del DOM para un acceso más rápido.
+   *                         Se puebla mediante `EventManagerApp.ui.cacheDomElements()`.
+   */
+  dom: {},
+
+  // --- SERVICIOS (Llamadas a google.script.run) ---
+  /**
+   * @memberof EventManagerApp
+   * @namespace services
+   * @description Contiene funciones wrapper para las llamadas a `google.script.run`, facilitando la comunicación con el backend.
+   *              Cada función devuelve una Promesa.
+   */
+  services: {
+    /**
+     * Obtiene los datos iniciales de configuración y la información del usuario desde el backend.
+     * @memberof EventManagerApp.services
+     * @returns {Promise<object>} Promesa que resuelve con un objeto que contiene AREAS_RESPONSABLES, ACTIVITY_TYPES y userInfo.
+     * @rejects {Error} Si la llamada al backend falla.
+     */
+    getInitialData: function() {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(response => resolve(response))
+          .withFailureHandler(error => reject(error))
+          .getInitialData();
+      });
+    },
+    /**
+     * Obtiene una lista paginada de eventos del backend.
+     * @memberof EventManagerApp.services
+     * @param {object} options - Opciones de paginación.
+     * @param {number} options.page - Número de página a solicitar.
+     * @param {number} options.limit - Número de eventos por página.
+     * @returns {Promise<object>} Promesa que resuelve con un objeto { data: Array<Event>, total: number }.
+     * @rejects {Error} Si la llamada al backend falla, mostrando un toast de error.
+     */
+    getEvents: function(options) {
+      EventManagerApp.ui.setLoadingState(true);
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(response => {
+            EventManagerApp.ui.setLoadingState(false);
+            resolve(response);
+          })
+          .withFailureHandler(error => {
+            EventManagerApp.ui.setLoadingState(false);
+            EventManagerApp.ui.showToast(`Error al cargar eventos: ${error.message}`, 'error');
+            reject(error);
+          })
+          .getEvents(options);
+      });
+    },
+    /**
+     * Envía los datos de un nuevo evento al backend para su registro.
+     * @memberof EventManagerApp.services
+     * @param {object} eventData - Objeto con los datos del evento del formulario.
+     * @returns {Promise<string>} Promesa que resuelve con un mensaje de éxito del backend.
+     * @rejects {Error} Si la llamada al backend falla, mostrando un toast de error.
+     */
+    addEvent: function(eventData) {
+      EventManagerApp.ui.setSubmittingState(true);
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(message => {
+            // El estado de submitting se resetea en el manejador de eventos, no aquí.
+            resolve(message);
+          })
+          .withFailureHandler(error => {
+            // El estado de submitting se resetea en el manejador de eventos.
+            EventManagerApp.ui.showToast(`Error al registrar: ${error.message}`, 'error');
+            reject(error);
+          })
+          .addEvent(eventData);
+      });
+    },
+    /**
+     * Solicita al backend la aprobación de un evento.
+     * @memberof EventManagerApp.services
+     * @param {string} eventId - El ID del evento a aprobar.
+     * @returns {Promise<string>} Promesa que resuelve con un mensaje de éxito del backend.
+     * @rejects {Error} Si la llamada al backend falla. El error es manejado por el invocador.
+     */
+    approveEvent: function(eventId) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(message => resolve(message))
+          .withFailureHandler(error => reject(error)) // El error se propaga para ser manejado por handleTableClick
+          .approveEvent(eventId);
+      });
+    },
+    /**
+     * Solicita al backend la cancelación de un evento.
+     * @memberof EventManagerApp.services
+     * @param {string} eventId - El ID del evento a cancelar.
+     * @returns {Promise<string>} Promesa que resuelve con un mensaje de éxito del backend.
+     * @rejects {Error} Si la llamada al backend falla. El error es manejado por el invocador.
+     */
+    cancelEvent: function(eventId) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(message => resolve(message))
+          .withFailureHandler(error => reject(error))
+          .cancelEvent(eventId);
+      });
+    },
+    /**
+     * Solicita al backend la eliminación (soft delete) de un evento.
+     * @memberof EventManagerApp.services
+     * @param {string} eventId - El ID del evento a eliminar.
+     * @returns {Promise<string>} Promesa que resuelve con un mensaje de éxito del backend.
+     * @rejects {Error} Si la llamada al backend falla. El error es manejado por el invocador.
+     */
+    deleteEvent: function(eventId) {
+       return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(message => resolve(message))
+          .withFailureHandler(error => reject(error))
+          .deleteEvent(eventId);
+      });
+    }
+  },
+
+  // --- UI (Renderizado y manipulación del DOM) ---
+  /**
+   * @memberof EventManagerApp
+   * @namespace ui
+   * @description Contiene métodos responsables de la manipulación del DOM y la actualización de la interfaz de usuario.
+   */
+  ui: {
+    /**
+     * Almacena en caché referencias a elementos del DOM de uso frecuente para mejorar el rendimiento.
+     * Se llama durante la inicialización de la aplicación.
+     * @memberof EventManagerApp.ui
+     */
+    cacheDomElements: function() {
+      const conf = EventManagerApp.config;
+      const dom = EventManagerApp.dom;
+      for (const key in conf) {
+        if (key.endsWith('Id')) {
+            const elementId = conf[key];
+            const elementName = key.substring(0, key.length - ('Id'.length));
+            dom[elementName] = document.getElementById(elementId);
+        }
+      }
+      conf.formFieldIds.forEach(id => {
+        if (!dom[id]) {
+            dom[id] = document.getElementById(id);
+        }
+      });
+    },
+
+    /**
+     * Muestra una notificación tipo "toast" en la esquina inferior derecha.
+     * @memberof EventManagerApp.ui
+     * @param {string} message - El mensaje a mostrar en el toast.
+     * @param {'success' | 'error'} [type='success'] - El tipo de notificación ('success' o 'error'), afecta el color.
+     */
+    showToast: function(message, type = 'success') {
+        const toastId = 'toast-' + Date.now();
+        const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+
+        let toastContainer = EventManagerApp.dom.toastContainer;
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = EventManagerApp.config.toastContainerId;
+            document.body.appendChild(toastContainer);
+            EventManagerApp.dom.toastContainer = toastContainer;
+        }
+
+        const toastElement = document.createElement('div');
+        toastElement.id = toastId;
+        toastElement.className = `toast ${bgColor} animate-fade-in-up`;
+        toastElement.innerHTML = `
+            <span class="font-medium">${message}</span>
+            <button onclick="document.getElementById('${toastId}').remove()" class="ml-4 -mr-1 p-1 rounded-md hover:bg-white/20">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+        `;
+        toastContainer.innerHTML = '';
+        toastContainer.appendChild(toastElement);
+
+        setTimeout(() => { toastElement.remove(); }, 4000);
+    },
+
+    /**
+     * Gestiona la visualización del indicador de carga (spinner y mensaje).
+     * @memberof EventManagerApp.ui
+     * @param {boolean} loading - True para mostrar el loader, false para ocultarlo.
+     */
+    setLoadingState: function(loading) {
+        EventManagerApp.state.isLoading = loading;
+        const dom = EventManagerApp.dom;
+        if (EventManagerApp.state.isLoading && EventManagerApp.state.allEventsOnPage.length === 0) {
+            dom.tableBody.innerHTML = '';
+            dom.tablePlaceholder.innerHTML = `<div class="text-center"><svg class="mx-auto h-12 w-12 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.75V6.25m0 11.5v1.5M4.75 12H6.25m11.5 0h1.5M6.34 6.34l1.06 1.06m9.19-1.06l-1.06 1.06M6.34 17.66l1.06-1.06m9.19 1.06l-1.06-1.06" /></svg><h3 class="mt-2 text-sm font-medium text-gray-900">Cargando eventos...</h3></div>`;
+            dom.tablePlaceholder.classList.remove('hidden');
+        } else {
+            dom.tablePlaceholder.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Gestiona el estado visual y de deshabilitación del botón de envío del formulario.
+     * @memberof EventManagerApp.ui
+     * @param {boolean} submitting - True si el formulario se está enviando, false en caso contrario.
+     */
+    setSubmittingState: function(submitting) {
+        EventManagerApp.state.isSubmitting = submitting;
+        if (EventManagerApp.dom.submitButton) {
+            EventManagerApp.dom.submitButton.disabled = submitting;
+            EventManagerApp.dom.submitButton.textContent = submitting ? 'Registrando...' : 'Registrar Evento';
+        }
+    },
+
+    /**
+     * Puebla los selects de "Área Responsable" y "Tipo de Actividad" con datos del backend.
+     * Limpia las opciones existentes antes de añadir las nuevas.
+     * @memberof EventManagerApp.ui
+     * @param {object} constants - Objeto que contiene `AREAS_RESPONSABLES` (Array<string>) y `ACTIVITY_TYPES` (Object).
+     */
+    populateSelects: function(constants) {
+      if (constants.AREAS_RESPONSABLES && EventManagerApp.dom.responsibleAreaSelect) {
+        EventManagerApp.dom.responsibleAreaSelect.innerHTML = '<option value="">Seleccione un área...</option>';
+        constants.AREAS_RESPONSABLES.forEach(area => {
+          const option = document.createElement('option');
+          option.value = area;
+          option.textContent = area;
+          EventManagerApp.dom.responsibleAreaSelect.appendChild(option);
+        });
+      }
+
+      if (constants.ACTIVITY_TYPES && EventManagerApp.dom.activityTypeSelect) {
+        EventManagerApp.dom.activityTypeSelect.innerHTML = '<option value="">Seleccione un tipo...</option>';
+        Object.entries(constants.ACTIVITY_TYPES).forEach(([groupLabel, options]) => {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = groupLabel;
+          (options as string[]).forEach(optionText => {
+            const option = document.createElement('option');
+            option.value = optionText;
+            option.textContent = optionText;
+            optgroup.appendChild(option);
+          });
+          EventManagerApp.dom.activityTypeSelect.appendChild(optgroup);
+        });
+      }
+    },
+
+    /**
+     * Actualiza la visualización del nombre de usuario y su rol (Admin/Coordinador) en la cabecera.
+     * @memberof EventManagerApp.ui
+     */
+    updateUserInfoDisplay: function() {
+      if (EventManagerApp.dom.userInfoDisplay) {
+        const { name, isAdmin } = EventManagerApp.state.userInfo;
+        EventManagerApp.dom.userInfoDisplay.textContent = `${name || 'Usuario'} ${isAdmin ? '(Admin)' : '(Coordinador)'}`;
+      }
+    },
+
+    /**
+     * Renderiza la tabla de eventos en el DOM.
+     * Utiliza `document.createElement` para construir las filas y celdas de forma segura.
+     * Filtra los eventos de la página actual según el término de búsqueda introducido.
+     * Muestra u oculta los botones de acción según el rol del usuario (admin) y el estado del evento.
+     * @memberof EventManagerApp.ui
+     */
+    renderTable: function() {
+        const dom = EventManagerApp.dom;
+        const state = EventManagerApp.state;
+
+        dom.tableBody.innerHTML = ''; // Limpiar antes de renderizar
+        const searchTerm = dom.searchInput.value.toLowerCase();
+
+        // Filtrar eventos de la página actual por el término de búsqueda
+        state.currentEvents = state.allEventsOnPage.filter(event =>
+            event.name.toLowerCase().includes(searchTerm) ||
+            (event.responsibleArea && event.responsibleArea.toLowerCase().includes(searchTerm))
+        );
+
+        if (state.currentEvents.length === 0) {
+            dom.tablePlaceholder.innerHTML = `<h3 class="mt-2 text-sm font-medium text-gray-900">No se encontraron eventos</h3><p class="mt-1 text-sm text-gray-500">${searchTerm ? 'Intente con otra búsqueda.' : 'Registre un nuevo evento para comenzar.'}</p>`;
+            dom.tablePlaceholder.classList.remove('hidden');
+            return;
+        }
+
+        dom.tablePlaceholder.classList.add('hidden');
+
+        state.currentEvents.forEach(event => {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-50 transition-colors";
+
+            // Celda de Estado
+            const statusCell = document.createElement('td');
+            statusCell.className = "px-4 py-3 whitespace-nowrap";
+            const statusPill = document.createElement('span');
+            const computedStatus = event.computedStatus || event.status;
+            statusPill.className = `status-pill status-${computedStatus.replace(/\s+/g, '')}`;
+            statusPill.textContent = computedStatus;
+            statusCell.appendChild(statusPill);
+            row.appendChild(statusCell);
+
+            // Celda de Nombre
+            const nameCell = document.createElement('td');
+            nameCell.className = "px-4 py-3 whitespace-nowrap text-[var(--text-primary)] text-sm font-medium";
+            nameCell.textContent = event.name;
+            row.appendChild(nameCell);
+
+            // Celda de Fecha
+            const dateCell = document.createElement('td');
+            dateCell.className = "px-4 py-3 whitespace-nowrap text-[var(--text-secondary)] text-sm @lg:table-cell hidden";
+            let displayDate = 'Fecha no disponible';
+            if (event.date) {
+                try {
+                    const dateObj = new Date(event.date + 'T00:00:00');
+                    if (!isNaN(dateObj.getTime())) {
+                         displayDate = dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+                    }
+                } catch (e) { /* Mantener 'Fecha no disponible' */ }
+            }
+            dateCell.textContent = displayDate;
+            row.appendChild(dateCell);
+
+            // Celda de Horario
+            const timeCell = document.createElement('td');
+            timeCell.className = "px-4 py-3 whitespace-nowrap text-[var(--text-secondary)] text-sm @lg:table-cell hidden";
+            timeCell.textContent = `${event.startTime || '--'} - ${event.endTime || '--'}`;
+            row.appendChild(timeCell);
+
+            // Celda de Área Responsable
+            const areaCell = document.createElement('td');
+            areaCell.className = "px-4 py-3 whitespace-nowrap text-[var(--text-secondary)] text-sm @2xl:table-cell hidden";
+            areaCell.textContent = event.responsibleArea || '-';
+            row.appendChild(areaCell);
+
+            // Celda de Acciones
+            const actionsCell = document.createElement('td');
+            actionsCell.className = "px-4 py-3 whitespace-nowrap";
+
+            if (state.userInfo.isAdmin) {
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = "flex items-center space-x-2";
+
+                const canBeModified = !['Cancelado', 'Pasado', 'Eliminado'].includes(computedStatus);
+                const isApproved = computedStatus === 'Aprobado';
+
+                if (canBeModified && !isApproved) {
+                    const approveButton = document.createElement('button');
+                    approveButton.dataset.action = "approve";
+                    approveButton.dataset.id = event.id;
+                    approveButton.className = "p-1.5 rounded-full text-green-600 hover:bg-green-100 transition-colors";
+                    approveButton.title = "Aprobar";
+                    approveButton.innerHTML = `<svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+                    actionsContainer.appendChild(approveButton);
+                }
+
+                if (canBeModified && computedStatus !== 'Cancelado') {
+                    const cancelButton = document.createElement('button');
+                    cancelButton.dataset.action = "cancel";
+                    cancelButton.dataset.id = event.id;
+                    cancelButton.className = "p-1.5 rounded-full text-orange-600 hover:bg-orange-100 transition-colors";
+                    cancelButton.title = "Cancelar";
+                    cancelButton.innerHTML = `<svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2 2m2-2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    actionsContainer.appendChild(cancelButton);
+                }
+
+                if (event.status !== 'Eliminado') {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.dataset.action = "delete";
+                    deleteButton.dataset.id = event.id;
+                    deleteButton.className = "p-1.5 rounded-full text-red-600 hover:bg-red-100 transition-colors";
+                    deleteButton.title = "Eliminar";
+                    deleteButton.innerHTML = `<svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                    actionsContainer.appendChild(deleteButton);
+                }
+
+                if (actionsContainer.childElementCount > 0) {
+                    actionsCell.appendChild(actionsContainer);
+                } else {
+                    const noActionsSpan = document.createElement('span');
+                    noActionsSpan.textContent = '-';
+                    actionsCell.appendChild(noActionsSpan);
+                }
+            } else {
+                const noActionsSpan = document.createElement('span');
+                noActionsSpan.textContent = '-';
+                actionsCell.appendChild(noActionsSpan);
+            }
+            row.appendChild(actionsCell);
+            dom.tableBody.appendChild(row);
+        });
+    },
+
+    /**
+     * Actualiza los controles de paginación (números de página, botones de anterior/siguiente).
+     * @memberof EventManagerApp.ui
+     */
+    updatePagination: function() {
+>>>>>>> REPLACE
