@@ -137,26 +137,22 @@
    */
   function runAddEvent(formObject, form, button) {
     google.script.run
-      .withSuccessHandler(response => {
-        showNotification(response, 'success');
-        form.reset();
-        getAndRenderEvents();
-      })
-      .withFailureHandler(error => {
-        showNotification('Error: ' + error.message, 'error');
-      })
-      .withUserObject({button}) // Pasar el botón para reactivarlo en el finally simulado
-      .addEvent(formObject);
-
-    // Simular finally para reactivar el botón, ya que Apps Script no tiene un .finally() directo
-    // Esto se ejecutará inmediatamente después de la llamada asíncrona,
-    // pero la UI se actualizará cuando la llamada termine.
-    // Para un manejo más robusto, el botón se podría reactivar dentro de withSuccessHandler y withFailureHandler.
-    // Sin embargo, el withUserObject y la reactivación en el callback es una práctica común.
-    // Decidí dejarlo aquí para asegurar que el botón se reactive incluso si hay un error no capturado antes de la llamada.
-    button.disabled = false;
-    button.textContent = 'Registrar Evento';
-  }
+        .withSuccessHandler(response => {
+            showNotification(response, 'success');
+            form.reset();
+            getAndRenderEvents();
+            // CORRECCIÓN: Reactivar el botón aquí, al finalizar con éxito.
+            button.disabled = false;
+            button.textContent = 'Registrar Evento';
+        })
+        .withFailureHandler(error => {
+            showNotification('Error: ' + error.message, 'error');
+            // CORRECCIÓN: Reactivar el botón aquí, en caso de fallo.
+            button.disabled = false;
+            button.textContent = 'Registrar Evento';
+        })
+        .addEvent(formObject);
+}
 
 
   /**
