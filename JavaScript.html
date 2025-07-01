@@ -1,0 +1,242 @@
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Carga inicial de eventos
+    getAndRenderEvents();
+
+    // Manejador del formulario de registro
+    document.getElementById('event-form').addEventListener('submit', handleFormSubmit);
+
+    // Manejadores de los filtros
+    document.getElementById('search-input').addEventListener('input', applyFilters);
+    document.getElementById('filter-status').addEventListener('change', applyFilters);
+  });
+
+  let allEvents = []; // Cache para guardar todos los eventos y filtrar en el cliente
+
+  /**
+   * Muestra u oculta el indicador de carga.
+   * @param {boolean} show True para mostrar, false para ocultar.
+   */
+  function toggleLoader(show) {
+    document.getElementById('loader').style.display = show ? 'block' : 'none';
+  }
+
+  /**
+   * Obtiene los eventos del backend y los renderiza en la tabla.
+   */
+  function getAndRenderEvents() {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(events => {
+        allEvents = events; // Guardar en cache
+        renderTable(allEvents);
+        toggleLoader(false);
+      })
+      .withFailureHandler(error => {
+        showNotification('Error al cargar eventos: ' + error.message, 'error');
+        toggleLoader(false);
+      })
+      .getEvents();
+  }
+
+  /**
+   * Renderiza la tabla de eventos a partir de un array de datos.
+   * @param {Array} events El array de eventos a mostrar.
+   */
+  function renderTable(events) {
+    const tableBody = document.getElementById('events-table-body');
+    tableBody.innerHTML = ''; // Limpiar la tabla
+
+    if (events.length === 0) {
+      const tr = tableBody.insertRow();
+      const td = tr.insertCell();
+      td.colSpan = 6; // Ajustar al número de columnas
+      td.textContent = 'No hay eventos para mostrar.';
+      td.style.textAlign = 'center';
+      return;
+    }
+
+    events.forEach(event => {
+      const row = document.createElement('tr');
+      const status = event.computedStatus || 'Pendiente';
+
+      // Celda de Estado
+      row.innerHTML += `<td class="status-cell"><span class="status-badge status-${status.replace(/\s+/g, '')}">${status}</span></td>`;
+
+      // Celda de Nombre del Evento
+      row.innerHTML += `<td>${event['Evento (Nombre/Título)']}<br><small style="color:grey;">ID: ${event['ID Evento']}</small></td>`;
+
+      // Celda de Fecha
+      const eventDate = new Date(event['Fecha Completa']);
+      row.innerHTML += `<td>${eventDate.toLocaleDateString('es-MX', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>`;
+
+      // Celda de Horario
+      row.innerHTML += `<td>${event['Hora Inicio']} - ${event['Hora Fin']}</td>`;
+
+      // Celda de Área Responsable
+      row.innerHTML += `<td>${event['Area Responsable']}</td>`;
+
+      // Celda de Acciones
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'actions-cell';
+
+      if (status === 'Pendiente' || status === 'Conflicto' || status === 'SemanaActual') {
+        const approveButton = document.createElement('button');
+        approveButton.textContent = 'Aprobar';
+        approveButton.className = 'btn-approve';
+        approveButton.onclick = () => handleApprove(event['ID Evento'], approveButton);
+        actionsCell.appendChild(approveButton);
+      }
+
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Eliminar';
+      deleteButton.className = 'btn-delete';
+      deleteButton.onclick = () => handleDelete(event['ID Evento'], deleteButton);
+      actionsCell.appendChild(deleteButton);
+
+      row.appendChild(actionsCell);
+      tableBody.appendChild(row);
+    });
+  }
+
+  /**
+   * Maneja el envío del formulario principal.
+   * @param {Event} e El evento de envío.
+   */
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formObject = Object.fromEntries(new FormData(form));
+    const submitButton = document.getElementById('submit-button');
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Registrando...';
+
+    // Manejo de archivo
+    const file = document.getElementById('file-upload').files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const fileData = e.target.result.split(',')[1];
+        formObject.fileData = fileData;
+        formObject.fileName = file.name;
+        formObject.fileMimeType = file.type;
+        runAddEvent(formObject, form, submitButton);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      runAddEvent(formObject, form, submitButton);
+    }
+  }
+
+  /**
+   * Ejecuta la llamada al backend para agregar un evento.
+   * @param {object} formObject Objeto del formulario.
+   * @param {HTMLFormElement} form El elemento del formulario.
+   * @param {HTMLButtonElement} button El botón de envío.
+   */
+  function runAddEvent(formObject, form, button) {
+    google.script.run
+      .withSuccessHandler(response => {
+        showNotification(response, 'success');
+        form.reset();
+        getAndRenderEvents();
+      })
+      .withFailureHandler(error => {
+        showNotification('Error: ' + error.message, 'error');
+      })
+      .withUserObject({button}) // Pasar el botón para reactivarlo en el finally simulado
+      .addEvent(formObject);
+
+    // Simular finally para reactivar el botón, ya que Apps Script no tiene un .finally() directo
+    // Esto se ejecutará inmediatamente después de la llamada asíncrona,
+    // pero la UI se actualizará cuando la llamada termine.
+    // Para un manejo más robusto, el botón se podría reactivar dentro de withSuccessHandler y withFailureHandler.
+    // Sin embargo, el withUserObject y la reactivación en el callback es una práctica común.
+    // Decidí dejarlo aquí para asegurar que el botón se reactive incluso si hay un error no capturado antes de la llamada.
+    button.disabled = false;
+    button.textContent = 'Registrar Evento';
+  }
+
+
+  /**
+   * Maneja la aprobación de un evento.
+   * @param {string} eventId El ID del evento.
+   * @param {HTMLButtonElement} button El botón presionado.
+   */
+  function handleApprove(eventId, button) {
+    button.disabled = true;
+    button.textContent = 'Aprobando...';
+    google.script.run
+      .withSuccessHandler(response => {
+        showNotification(response, 'success');
+        getAndRenderEvents();
+      })
+      .withFailureHandler(error => {
+        showNotification('Error: ' + error.message, 'error');
+        button.disabled = false;
+        button.textContent = 'Aprobar';
+      })
+      .approveEventAndCreateCalendar(eventId);
+  }
+
+  /**
+   * Maneja la eliminación de un evento.
+   * @param {string} eventId El ID del evento.
+   * @param {HTMLButtonElement} button El botón presionado.
+   */
+  function handleDelete(eventId, button) {
+    if (!confirm('¿Está seguro de que desea ELIMINAR este evento? Esta acción es PERMANENTE y no se puede deshacer.')) {
+      return;
+    }
+    button.disabled = true;
+    button.textContent = 'Eliminando...';
+    google.script.run
+      .withSuccessHandler(response => {
+        showNotification(response, 'success');
+        getAndRenderEvents();
+      })
+      .withFailureHandler(error => {
+        showNotification('Error: ' + error.message, 'error');
+        button.disabled = false;
+        button.textContent = 'Eliminar';
+      })
+      .deleteEvent(eventId);
+  }
+
+  /**
+   * Muestra una notificación no invasiva.
+   * @param {string} message El mensaje a mostrar.
+   * @param {string} type El tipo ('success' o 'error').
+   */
+  function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `toast-notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+
+    setTimeout(() => {
+      notification.classList.remove('show');
+      notification.addEventListener('transitionend', () => notification.remove());
+    }, 4000);
+  }
+
+  /**
+   * Aplica los filtros de búsqueda y estado a la tabla.
+   */
+  function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter = document.getElementById('filter-status').value;
+
+    const filteredEvents = allEvents.filter(event => {
+      const nameMatch = event['Evento (Nombre/Título)'].toLowerCase().includes(searchTerm);
+      const statusMatch = statusFilter ? event.computedStatus === statusFilter : true;
+      return nameMatch && statusMatch;
+    });
+    renderTable(filteredEvents);
+  }
+</script>

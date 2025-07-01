@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Sistema de Gestión de Eventos - CECAN</title>
+  <?!= include('CSS'); ?>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Sistema de Gestión de Eventos Culturales</h1>
+      <p>Consejo Estatal para la Cultura y las Artes de Nayarit</p>
+    </header>
+
+    <main>
+      <div class="form-container">
+        <h2>Registrar Nuevo Evento</h2>
+        <form id="event-form">
+          <div class="form-group">
+            <label for="evento-nombre">Nombre del Evento</label>
+            <input type="text" id="evento-nombre" name="Evento (Nombre/Título)" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="fecha-completa">Fecha</label>
+              <input type="date" id="fecha-completa" name="Fecha Completa" required>
+            </div>
+            <div class="form-group">
+              <label for="hora-inicio">Hora Inicio</label>
+              <input type="time" id="hora-inicio" name="Hora Inicio" required>
+            </div>
+            <div class="form-group">
+              <label for="hora-fin">Hora Fin</label>
+              <input type="time" id="hora-fin" name="Hora Fin" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tipo-actividad">Tipo de Actividad</label>
+            <input type="text" id="tipo-actividad" name="Tipo de Actividad">
+          </div>
+          <div class="form-group">
+            <label for="lugar-realizacion">Lugar de Realización</label>
+            <input type="text" id="lugar-realizacion" name="Lugar de Realización">
+          </div>
+          <div class="form-group">
+            <label for="ubicacion-especifica">Ubicación Específica</label>
+            <input type="text" id="ubicacion-especifica" name="Ubicacion Especifica">
+          </div>
+          <div class="form-group">
+            <label for="area-responsable">Área Responsable</label>
+            <select id="area-responsable" name="Area Responsable">
+                <option value="">-- Seleccione un área --</option>
+                <option>Biblioteca Pública Estatal Solón Argüello</option>
+                <option>Escuela Superior de Música</option>
+                <option>Escuela de Música Siglo XXI</option>
+                <option>Casa Museo “Juan Escutia”</option>
+                <option>Casa Museo “Amado Nervo”</option>
+                <option>Museo del Origen de Mexcaltitán</option>
+                <option>Escuela Estatal de Bellas Artes</option>
+                <option>Centro de Arte Contemporáneo “Emilia Ortiz”</option>
+                <option>Museo de los Cinco Pueblos</option>
+                <option>Centro Cultural en Bellavista</option>
+                <option>Amado Nervo CEDART</option>
+                <option>Programa de Desarrollo Cultura Infantil</option>
+                <option>Programa de Fomento a la Lectura y Literatura</option>
+                <option>Programa de Apoyo a las Culturas Municipales y Comunitarias (PACMyC)</option>
+                <option>Programa de Estímulo a la Creación y Desarrollo Artístico (PECDA)</option>
+                <option>Fondo Nacional para el Fomento de las Artesanías (FONART)</option>
+            </select>
+          </div>
+          <div class="form-group">
+              <label for="cobertura-fotografica">Cobertura Fotográfica</label>
+              <select id="cobertura-fotografica" name="Cobertura Fotográfica">
+                  <option value="No">No</option>
+                  <option value="Sí">Sí</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="necesita-diseno">Necesita Diseño</label>
+              <select id="necesita-diseno" name="Necesita Diseño">
+                  <option value="No">No</option>
+                  <option value="Sí">Sí</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="notas">Notas Adicionales</label>
+              <textarea id="notas" name="Notas" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="file-upload">Manual de Diseño (Opcional)</label>
+            <input type="file" id="file-upload">
+          </div>
+
+          <button type="submit" id="submit-button">Registrar Evento</button>
+        </form>
+      </div>
+
+      <div class="table-container">
+        <h2>Listado de Eventos</h2>
+        <div class="filter-controls">
+            <input type="text" id="search-input" placeholder="Buscar por nombre...">
+            <select id="filter-status">
+                <option value="">Todos los Estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Aprobado">Aprobado</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Conflicto">Conflicto</option>
+                <option value="Pasado">Pasado</option>
+                <option value="SemanaActual">Semana Actual</option>
+            </select>
+        </div>
+        <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Estado</th>
+                  <th>Evento</th>
+                  <th>Fecha</th>
+                  <th>Horario</th>
+                  <th>Área Responsable</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="events-table-body">
+                <!-- Las filas se insertarán aquí por JavaScript -->
+              </tbody>
+            </table>
+        </div>
+        <div id="loader" class="loader">Cargando eventos...</div>
+      </div>
+    </main>
+  </div>
+
+  <?!= include('JavaScript'); ?>
+</body>
+</html>
