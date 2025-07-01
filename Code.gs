@@ -79,89 +79,83 @@ Obtiene la lista completa de eventos con su estado calculado.
 @returns {Array} Un array de objetos, donde cada objeto es un evento.
 */
 function getEvents() {
-try {
-const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-// Evitar obtener datos de una hoja vacía o solo con cabecera
-if (sheet.getLastRow() < 2) {
-return [];
-}
-const range = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
-const values = range.getValues();
-const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    if (sheet.getLastRow() < 2) return [];
 
-let events = values.map(row => {
-const eventObject = {};
-headers.forEach((header, i) => {
-eventObject[header] = row[i];
-});
-return eventObject;
-});
+    const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-// Ordenar eventos por fecha y hora para la lógica de conflictos
-events.sort((a, b) => {
-const dateA = new Date(a['Fecha Completa']);
-const dateB = new Date(b['Fecha Completa']);
-if (dateA.getTime() !== dateB.getTime()) return dateA - dateB;
+    let events = values.map(row => {
+      const eventObject = {};
+      headers.forEach((header, i) => eventObject[header] = row[i]);
+      return eventObject;
+    });
 
-const timeA = a['Hora Inicio'] ? new Date(`1970-01-01T${a['Hora Inicio']}`) : 0;
-const timeB = b['Hora Inicio'] ? new Date(`1970-01-01T${b['Hora Inicio']}`) : 0;
-return timeA - timeB;
-});
+    events.sort((a, b) => {
+      const dateA = new Date(a['Fecha Completa']);
+      const dateB = new Date(b['Fecha Completa']);
+      if (dateA.getTime() !== dateB.getTime()) return dateA - dateB;
+      const timeA = new Date(`1970-01-01T${a['Hora Inicio'] || '00:00'}`);
+      const timeB = new Date(`1970-01-01T${b['Hora Inicio'] || '00:00'}`);
+      return timeA - timeB;
+    });
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+    // Paso 1: Identificar conflictos con una propiedad temporal
+    for (let i = 1; i < events.length; i++) {
+      const prevEvent = events[i - 1];
+      const currentEvent = events[i];
+      const prevEventDate = new Date(prevEvent['Fecha Completa']);
+      const currentEventDate = new Date(currentEvent['Fecha Completa']);
 
-for (let i = 0; i < events.length; i++) {
-let computedStatus = "";
-const eventDate = new Date(events[i]['Fecha Completa']);
+      if (prevEventDate.toDateString() === currentEventDate.toDateString()) {
+        if (prevEvent['Hora Fin'] && currentEvent['Hora Inicio']) {
+          const prevEndTime = new Date(`1970-01-01T${prevEvent['Hora Fin']}`);
+          const currentStartTime = new Date(`1970-01-01T${currentEvent['Hora Inicio']}`);
+          const diffHours = (currentStartTime - prevEndTime) / 3600000;
 
-// 1. Prioridad máxima: Estados finales
-if (events[i]['Aprobación Jefe'] === 'Cancelado') {
-computedStatus = 'Cancelado';
-} else if (events[i]['Aprobación Jefe'] === 'Aprobado por Jefe') {
-computedStatus = 'Aprobado';
-} else {
-// 2. Lógica de conflictos
-if (i > 0) {
-const prevEvent = events[i - 1];
-if (prevEvent['Aprobación Jefe'] !== 'Cancelado' && prevEvent['Aprobación Jefe'] !== 'Aprobado por Jefe') {
-const prevEventDate = new Date(prevEvent['Fecha Completa']);
-if (prevEventDate.toDateString() === eventDate.toDateString() && prevEvent['Hora Fin'] && events[i]['Hora Inicio']) {
-const prevEndTime = new Date(`1970-01-01T${prevEvent['Hora Fin']}`);
-const currentStartTime = new Date(`1970-01-01T${events[i]['Hora Inicio']}`);
-const diffHours = (currentStartTime - prevEndTime) / (3600000); // 1000 * 60 * 60
-
-       if (diffHours < 5) {
-         computedStatus = 'Conflicto';
-         if (!prevEvent.computedStatus) { // Evitar sobreescribir
-            prevEvent.computedStatus = 'Conflicto';
-         }
-       }
-     }
-   }
- }
- // 3. Lógica de Pasado / Semana Actual
- if (computedStatus === "") {
-   if (eventDate < today) {
-     computedStatus = 'Pasado';
-   } else {
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      if (eventDate >= startOfWeek && eventDate <= endOfWeek) {
-          computedStatus = 'SemanaActual';
+          if (diffHours < 5) {
+            prevEvent.isConflict = true;
+            currentEvent.isConflict = true;
+          }
+        }
       }
-   }
- }
-}
-events[i].computedStatus = computedStatus || 'Pendiente'; // Estado por defecto
-}
-return events;
-} catch (e) {
-Logger.log('Error en getEvents: ' + e.toString());
-throw new Error('No se pudieron obtener los eventos.');
-}
+    }
+
+    // Paso 2: Asignar el computedStatus final con prioridades
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    events.forEach(event => {
+      const eventDate = new Date(event['Fecha Completa']);
+
+      if (event['Aprobación Jefe'] === 'Aprobado por Jefe') {
+        event.computedStatus = 'Aprobado';
+      } else if (event['Aprobación Jefe'] === 'Cancelado') {
+        event.computedStatus = 'Cancelado';
+      } else if (event.isConflict) {
+        event.computedStatus = 'Conflicto';
+      } else if (eventDate < today) {
+        event.computedStatus = 'Pasado';
+      } else {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        if (eventDate >= startOfWeek && eventDate <= endOfWeek) {
+          event.computedStatus = 'SemanaActual';
+        } else {
+          event.computedStatus = 'Pendiente';
+        }
+      }
+      delete event.isConflict; // Limpiar propiedad temporal
+    });
+
+    return events;
+  } catch (e) {
+    Logger.log('Error en getEvents: ' + e.toString());
+    throw new Error('No se pudieron obtener los eventos.');
+  }
 }
 
 /**
